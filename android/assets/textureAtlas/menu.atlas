@@ -1,0 +1,20 @@
+
+menu.png
+size: 2048,1024
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+bg
+  rotate: false
+  xy: 2, 111
+  size: 1280, 720
+  orig: 1280, 720
+  offset: 0, 0
+  index: -1
+newgame
+  rotate: false
+  xy: 2, 2
+  size: 314, 107
+  orig: 314, 107
+  offset: 0, 0
+  index: -1
