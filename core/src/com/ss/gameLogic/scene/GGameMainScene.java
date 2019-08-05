@@ -18,12 +18,11 @@ import com.ss.core.util.GScreen;
 import com.ss.core.util.GStage;
 import com.ss.core.util.GUI;
 
-
 public class GGameMainScene extends GScreen {
     TextureAtlas gameMainAtlas;
     Group uiGroup;
     BoardConfig cfg;
-    Array<Group> groupsBot;
+    public static Array<Group> groupsBot;
     Array<Group> groupFrameMoney;
     Array<Player> bots;
     Board board;
@@ -31,6 +30,7 @@ public class GGameMainScene extends GScreen {
     Array<Vector2> positionFrameMoney;
     Array<Integer> idAvatar;
     Array<FrameMoney> frameMoney;
+    public static Image turnLight;
 
     @Override
     public void dispose() {
@@ -72,6 +72,9 @@ public class GGameMainScene extends GScreen {
         table.setPosition(table.getX(), (GMain.screenHeight - table.getHeight())/2 + 30);
         cardDown.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight- cfg.CH*Card.ratioScale)/2);
         table.setScale(0.96f);
+        turnLight = GUI.createImage(this.gameMainAtlas, "turnLight");
+        uiGroup.addActor(turnLight);
+        turnLight.setVisible(false);
     }
 
     private void initGroupBot(){
@@ -147,8 +150,8 @@ public class GGameMainScene extends GScreen {
                 positionGroup.add(position0, position1);
 
                 Vector2 positionM0 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, GMain.screenHeight - 220);
-                Vector2 positionM1 = new Vector2(GMain.screenWidth - 400, 150);
-                Vector2 positionM2 = new Vector2(300, 150);
+                Vector2 positionM1 = new Vector2(GMain.screenWidth - 420, 150);
+                Vector2 positionM2 = new Vector2(320, 150);
                 positionFrameMoney.add(positionM0, positionM1, positionM2);
                 break;
             }
@@ -174,10 +177,10 @@ public class GGameMainScene extends GScreen {
 
 
                 Vector2 positionM0 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, GMain.screenHeight - 220);
-                Vector2 positionM1 = new Vector2(GMain.screenWidth - 400, GMain.screenHeight - 250);
-                Vector2 positionM2 = new Vector2(GMain.screenWidth - 400, 150);
-                Vector2 positionM3 = new Vector2(300, 150);
-                Vector2 positionM4 = new Vector2(300, GMain.screenHeight - 250);
+                Vector2 positionM1 = new Vector2(GMain.screenWidth - 420, GMain.screenHeight - 250);
+                Vector2 positionM2 = new Vector2(GMain.screenWidth - 420, 150);
+                Vector2 positionM3 = new Vector2(320, 150);
+                Vector2 positionM4 = new Vector2(320, GMain.screenHeight - 250);
                 positionFrameMoney.add(positionM0, positionM1, positionM2, positionM3);
                 positionFrameMoney.add(positionM4);
                 break;
@@ -192,11 +195,11 @@ public class GGameMainScene extends GScreen {
                 positionGroup.add(position4);
 
                 Vector2 positionM0 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, GMain.screenHeight - 220);
-                Vector2 positionM1 = new Vector2(GMain.screenWidth - 400, GMain.screenHeight - 250);
-                Vector2 positionM2 = new Vector2(GMain.screenWidth - 400, 150);
+                Vector2 positionM1 = new Vector2(GMain.screenWidth - 420, GMain.screenHeight - 250);
+                Vector2 positionM2 = new Vector2(GMain.screenWidth - 420, 150);
                 Vector2 positionM3 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 200);
-                Vector2 positionM4 = new Vector2(300, 150);
-                Vector2 positionM5 = new Vector2(300, GMain.screenHeight - 250);
+                Vector2 positionM4 = new Vector2(320, 150);
+                Vector2 positionM5 = new Vector2(320, GMain.screenHeight - 250);
                 positionFrameMoney.add(positionM0, positionM1, positionM2, positionM3);
                 positionFrameMoney.add(positionM4, positionM5);
                 break;

@@ -3,8 +3,12 @@ package com.ss.core.objects;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Align;
+import com.ss.core.action.exAction.GSimpleAction;
 import com.ss.core.util.GUI;
 
 public class Card extends Image {
@@ -31,9 +35,34 @@ public class Card extends Image {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                hiddenTileDown();
+                flipCard(true);
             }
         });
+    }
+
+    public void flipCard(boolean isNotBot){
+        if(!isNotBot){
+            tileDown.setVisible(false);
+            return;
+        }
+        float ratio = isNotBot ? 1 : 0.5f;
+        tileDown.setTouchable(Touchable.disabled);
+        tileDown.setOrigin(Align.center);
+        image.setOrigin(Align.center);
+        image.setScale(0, ratio);
+        tileDown.addAction(Actions.sequence(
+                Actions.delay(0.2f),
+                Actions.scaleBy(-1, 0, 0.2f),
+                GSimpleAction.simpleAction((d, a)-> {
+                    scaleImageCard(isNotBot);
+                    return true;
+                })
+        ));
+    }
+
+    private void scaleImageCard(boolean isNotBot){
+        float ratio = isNotBot ? 1 : 0.5f;
+        image.addAction(Actions.scaleTo(ratio, ratio, 0.2f));
     }
 
     public void setPosition(float x, float y){

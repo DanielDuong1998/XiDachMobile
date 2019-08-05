@@ -4,18 +4,26 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.*;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.ss.GMain;
 import com.ss.core.action.exAction.GSimpleAction;
+import com.ss.core.util.GUI;
+import com.ss.gameLogic.scene.GGameMainScene;
 import com.ss.gameLogic.scene.GGameStart;
 
 public class Board {
     TextureAtlas gameMainAtlas;
     Group group;
     BoardConfig cfg;
+    Image startGameBtn;
+    Image takeCardBtn;
     Array<Vector2> tiles;
     Array<Array<Card>> cards;
     Array<Array<Card>> cards_temp;
@@ -24,6 +32,7 @@ public class Board {
     Array<Vector2> resultFinal;
     int turnAtTheMoment = 1;
     int turnInitCards = 0;
+    boolean flagTurnLightOfTurn1 = true;
 
     public Board(TextureAtlas gameMainAtlas, Group group){
         this.gameMainAtlas = gameMainAtlas;
@@ -32,10 +41,28 @@ public class Board {
         initCardsGroup();
         initPositionCardGroup();
         initResutl();
-        start();
+        startGame();
+
     }
 
-    private void start(){
+    private void startGame(){
+        startGameBtn = GUI.createImage(this.gameMainAtlas, "startGame");
+        takeCardBtn = GUI.createImage(this.gameMainAtlas, "takeCard");
+        group.addActor(startGameBtn);
+        group.addActor(takeCardBtn);
+        takeCardBtn.setVisible(false);
+        startGameBtn.setPosition(GMain.screenWidth/2, GMain.screenHeight/2, Align.center);
+        startGameBtn.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                startGameBtn.setVisible(false);
+                startRenderCards();
+            }
+        });
+    }
+
+    private void startRenderCards(){
         renderPositionCard();
         initTiles();
         initCards();
@@ -59,29 +86,29 @@ public class Board {
 
     private void sortCardsAtTheStart(){
         for(int index = 0; index < GGameStart.member; index++) {
-            cards_temp.get(index).get(0).image.addAction(Actions.rotateTo(0, 0.2f));
-            cards_temp.get(index).get(1).image.addAction(Actions.rotateTo(0, 0.2f));
+            cards_temp.get(index).get(0).image.addAction(rotateTo(0, 0.4f));
+            cards_temp.get(index).get(1).image.addAction(rotateTo(0, 0.4f));
         }
     }
 
     private void alignCardsAtTheStart(){
         for(int index = 0; index < GGameStart.member; index++){
             if(index == 0){
-                cards_temp.get(index).get(1).image.addAction(Actions.moveBy(cfg.CW*Card.ratioScale - 2, 0, 0.3f));
-                Gdx.app.log("debug", "cfg.cw: " + cfg.CW);
+                cards_temp.get(index).get(1).image.addAction(moveBy(cfg.CW - cfg.CW/3, 0, 0.3f));
+                cards_temp.get(index).get(1).tileDown.addAction(moveBy(cfg.CW - cfg.CW/3, 0, 0.3f));
             }
-            cards_temp.get(index).get(1).image.addAction(Actions.moveBy(cfg.CW*Card.ratioScale-2, 0, 0.3f));
+            else {
+                cards_temp.get(index).get(1).image.addAction(moveBy(cfg.CW*Card.ratioScale - (cfg.CW*Card.ratioScale)/2, 0, 0.3f));
+                cards_temp.get(index).get(1).tileDown.addAction(moveBy(cfg.CW*Card.ratioScale - (cfg.CW*Card.ratioScale)/2, 0, 0.3f));
+            }
         }
 
-        group.addAction(Actions.sequence(
-                Actions.delay(0.3f),
-                GSimpleAction.simpleAction(new GSimpleAction.ActInterface() {
-                    @Override
-                    public boolean act(float var1, Actor var2) {
-                        showCardsAtTheStart();
-                        return true;
-                    }
-                })
+        group.addAction(sequence(
+            delay(0.3f),
+            GSimpleAction.simpleAction((d, a)-> {
+                showCardsAtTheStart();
+                return true;
+            })
         ));
     }
 
@@ -91,7 +118,6 @@ public class Board {
             cards_temp.get(i).get(0).tileDown.remove();
             cards_temp.get(i).get(1).image.remove();
             cards_temp.get(i).get(1).tileDown.remove();
-
             cards_temp.get(i).removeIndex(0);
             cards_temp.get(i).removeIndex(0);
         }
@@ -103,17 +129,37 @@ public class Board {
             cards.get(i).get(1).setVisible(true);
         }
 
-        group.addAction(Actions.sequence(
-                Actions.delay(0.3f),
-                GSimpleAction.simpleAction(new GSimpleAction.ActInterface() {
-                    @Override
-                    public boolean act(float var1, Actor var2) {
-                        removeCardTempAtTheStart();
-                        play();
-                        return true;
-                    }
-                })
+        group.addAction(sequence(
+            delay(0.3f),
+            GSimpleAction.simpleAction((d, a)-> {
+                removeCardTempAtTheStart();
+                checkPointCardAtTheStart();
+                //play();
+                return true;
+            })
         ));
+    }
+
+    private void checkPointCardAtTheStart(){
+        Vector2 resutl = checkPoint(cards.get(0));
+        if(resutl.x == 0 && (resutl.y == 1 || resutl.y == 2)){
+            Gdx.app.log("debug_Board_143", "end Game roi ne, goi ham lat bai");
+            cards.get(0).get(0).flipCard(true);
+            cards.get(0).get(1).flipCard(true);
+            for(int i = 1; i < cards.size; i++) {
+                cards.get(i).get(0).flipCard(false);
+                cards.get(i).get(1).flipCard(false);
+            }
+            return;
+        }
+        for(int i = 1; i < cards.size; i++) {
+            resutl = checkPoint(cards.get(i));
+            if(resutl.x == 0 && (resutl.y == 1 || resutl.y == 2)){
+                cards.get(i).get(0).flipCard(false);
+                cards.get(i).get(1).flipCard(false);
+            }
+        }
+        play();
     }
 
     private void initTiles() {
@@ -139,15 +185,12 @@ public class Board {
         if(turnInitCards == GGameStart.member*2){
             Gdx.app.log("debug", "out of turn");
             sortCardsAtTheStart();
-            group.addAction(Actions.sequence(
-                    Actions.delay(0.3f),
-                    GSimpleAction.simpleAction(new GSimpleAction.ActInterface() {
-                        @Override
-                        public boolean act(float var1, Actor var2) {
-                            alignCardsAtTheStart();
-                            return true;
-                        }
-                    })
+            group.addAction(sequence(
+                delay(0.6f),
+                GSimpleAction.simpleAction((d, a)-> {
+                    alignCardsAtTheStart();
+                    return true;
+                })
             ));
             Gdx.app.log("debug", "here!!");
             return;
@@ -155,34 +198,38 @@ public class Board {
         else {
             Card card = new Card(gameMainAtlas, cardsGroup.get(turnInitCards%GGameStart.member),(int)tiles.get(0).x, (int)tiles.get(0).y);
             Card cardmove = new Card(gameMainAtlas, group, 0, 0);
+            cardmove.hiddenTileDown();
             cards_temp.get(turnInitCards%GGameStart.member).add(cardmove);
             cardmove.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight- cfg.CH*Card.ratioScale)/2);
             tiles.removeIndex(0);
             card.setVisible(false);
 
             float ratioScale = Card.ratioScale;
+            int constValue = 1;
+            float ratio_temp = 2;
             if(turnInitCards%GGameStart.member == 0){
                 card.setScale(1);
                 card.addListenerClick();
                 cardmove.setScale(1);
                 ratioScale = 1;
+                constValue = 0;
+                ratio_temp = 3;
             }
             if(turnInitCards >= GGameStart.member) {
-                card.setPosition(cfg.CW*ratioScale, card.image.getY());
+                card.setPosition(cfg.CW*ratioScale - (cfg.CW*ratioScale)/ratio_temp, card.image.getY());
             }
             cards.get(turnInitCards%GGameStart.member).add(card);
-            cardmove.image.addAction(Actions.sequence(
-                Actions.parallel(
-                        Actions.moveTo(cardsGroup.get(turnInitCards%GGameStart.member).getX(), cardsGroup.get(turnInitCards%GGameStart.member).getY(), 0.3f, Interpolation.fastSlow),
-                        Actions.rotateBy(-1*((int)Math.floor(Math.random()*81) + 10), 0.3f)
+            cardmove.image.setOrigin(Align.center);
+            cardmove.tileDown.setOrigin(Align.center);
+            cardmove.image.addAction(sequence(
+                parallel(
+                    moveTo(cardsGroup.get(turnInitCards%GGameStart.member).getX() - cfg.CW/2*ratioScale*constValue, cardsGroup.get(turnInitCards%GGameStart.member).getY() - cfg.CH/2*ratioScale*constValue, 0.3f, Interpolation.fastSlow),
+                    rotateBy(-1*((int)Math.floor(Math.random()*81 + 180) + 10), 0.3f)
                 ),
-                GSimpleAction.simpleAction(new GSimpleAction.ActInterface() {
-                    @Override
-                    public boolean act(float var1, Actor var2) {
-                        turnInitCards++;
-                        initCards();
-                        return true;
-                    }
+                GSimpleAction.simpleAction((d, a)-> {
+                    turnInitCards++;
+                    initCards();
+                    return true;
                 })
             ));
         }
@@ -196,29 +243,25 @@ public class Board {
     }
 
     private void play(){
+        if(turnAtTheMoment == 1 && flagTurnLightOfTurn1){
+            flagTurnLightOfTurn1 = false;
+           turnOnLight();
+           return;
+        }
         if(turnAtTheMoment == GGameStart.member){
             Gdx.app.log("debug", "het luot");
+            GGameMainScene.turnLight.setVisible(false);
+            takeCardBtn.setPosition(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 10, GMain.screenHeight);
+            takeCardBtn.setVisible(true);
+            takeCardBtn.addAction(Actions.sequence(
+                moveTo(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 10, cardsGroup.get(0).getY(), 0.3f, Interpolation.fastSlow)
+            ));
             return;
-        }
-        for(Card card : cards.get(turnAtTheMoment)){
-            Gdx.app.log("card turn" + turnAtTheMoment, "" + card.values[1]);
         }
 
         Vector2 result = checkPoint(cards.get(turnAtTheMoment));
         Gdx.app.log("debug", "point: x-y: " + result.x + "-" + result.y);
-        if(result.x == 0 && result.y == 1){
-            Gdx.app.log("debug", "board_103: turn: " + turnAtTheMoment + " xi ban");
-            resultFinal.get(turnAtTheMoment).set(result);
-            flipCards();
-            fitPositionGroupCards();
-        }
-        else if(result.x == 0 && result.y == 2) {
-            Gdx.app.log("debug", "board_109: turn: " + turnAtTheMoment + " xi dach");
-            resultFinal.get(turnAtTheMoment).set(result);
-            flipCards();
-            fitPositionGroupCards();
-        }
-        else if(result.x == 0 && result.y == 0){
+        if(result.x == 0 && result.y == 0){
             Gdx.app.log("debug", "board_116: turn: " + turnAtTheMoment + " <16");
             getCard();
         }
@@ -241,26 +284,52 @@ public class Board {
 
     private void fitPositionGroupCards(){
         if(cards.get(turnAtTheMoment).size > 2) {
-            cardsGroup.get(turnAtTheMoment).addAction(Actions.sequence(
-                Actions.moveBy(-1*((cards.get(turnAtTheMoment).size-2)*cfg.CW*Card.ratioScale)/2, 0, 0.3f),
-                GSimpleAction.simpleAction(new GSimpleAction.ActInterface() {
-                    @Override
-                    public boolean act(float var1, Actor var2) {
-                        turnAtTheMoment++;
-                        play();
-                        return true;
-                    }
+            cardsGroup.get(turnAtTheMoment).addAction(sequence(
+                moveBy(-1*((cards.get(turnAtTheMoment).size-2)*cfg.CW*Card.ratioScale)/2 + 20, 0, 0.3f),
+                GSimpleAction.simpleAction((d, a)-> {
+                    turnAtTheMoment++;
+                    turnOnLight();
+                    return true;
                 })
             ));
         }
         else {
             turnAtTheMoment++;
-            play();
+            turnOnLight();
+        }
+    }
+
+    private void turnOnLight(){
+        if(turnAtTheMoment >= GGameStart.member){
+            group.addAction(Actions.sequence(
+                delay(1),
+                GSimpleAction.simpleAction((d, a)->{
+                    GGameMainScene.turnLight.setVisible(false);
+                    Gdx.app.log("debug", "khong log");
+                    play();
+                    return true;
+                })
+            ));
+        }
+        else {
+            GGameMainScene.turnLight.setPosition(cardsGroup.get(turnAtTheMoment).getX() - 150, cardsGroup.get(turnAtTheMoment).getY() - 200);
+            GGameMainScene.turnLight.setVisible(true);
+            group.addAction(Actions.sequence(
+                delay(1f),
+                GSimpleAction.simpleAction((d, a)->{
+                    Gdx.app.log("debug", "co log");
+                    play();
+                    return true;
+                })
+            ));
         }
     }
 
     private void flipCards(){
         Gdx.app.log("debug_121", "flip cards");
+        for(Card cardTemp : cards.get(turnAtTheMoment)){
+            cardTemp.flipCard(false);
+        }
     }
 
     private int percentGetCard(Array<Card> card){
@@ -293,6 +362,7 @@ public class Board {
 
     private void getCard(){
         Card card = new Card(gameMainAtlas, cardsGroup.get(turnAtTheMoment), (int)tiles.get(0).x, (int)tiles.get(0).y);
+        card.setVisible(false);
         cards.get(turnAtTheMoment).addAll(card);
         cards.get(turnAtTheMoment).get(cards.get(turnAtTheMoment).size-1).image.setVisible(false);
         Gdx.app.log("debug", "size: " + cards.get(turnAtTheMoment).size + " cfg: " + cfg.CW);
@@ -302,31 +372,30 @@ public class Board {
         cardmove.image.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight- cfg.CH*Card.ratioScale)/2);
 
         tiles.removeIndex(0);
-        cardmove.image.addAction(Actions.sequence(
-                Actions.delay(0.8f),
-                Actions.moveTo(cardsGroup.get(turnAtTheMoment).getX(), cardsGroup.get(turnAtTheMoment).getY(), 0.3f, Interpolation.fastSlow),
-                GSimpleAction.simpleAction(new GSimpleAction.ActInterface() {
-                    @Override
-                    public boolean act(float var1, Actor var2) {
-                        cardmove.removeCard();
-                        cards.get(turnAtTheMoment).get(cards.get(turnAtTheMoment).size-1).image.setVisible(true);
-                        moveCardInAGroup(cards.get(turnAtTheMoment).get(cards.get(turnAtTheMoment).size-1));
-                        return true;
-                    }
-                })
+        cardmove.image.addAction(sequence(
+            delay(0.8f),
+            moveTo(cardsGroup.get(turnAtTheMoment).getX(), cardsGroup.get(turnAtTheMoment).getY(), 0.3f, Interpolation.fastSlow),
+            GSimpleAction.simpleAction((d, a)-> {
+                card.setVisible(true);
+                cardmove.removeCard();
+                cards.get(turnAtTheMoment).get(cards.get(turnAtTheMoment).size-1).image.setVisible(true);
+                moveCardInAGroup(cards.get(turnAtTheMoment).get(cards.get(turnAtTheMoment).size-1));
+                return true;
+            })
         ));
     }
 
     private void moveCardInAGroup(Card card){
-        card.tileDown.addAction(Actions.moveTo((cards.get(turnAtTheMoment).size-1)*cfg.CW*Card.ratioScale,0, 0.2f));
-        card.image.addAction(Actions.sequence(
-                Actions.moveTo((cards.get(turnAtTheMoment).size-1)*cfg.CW*Card.ratioScale,0, 0.2f),
-                GSimpleAction.simpleAction(new GSimpleAction.ActInterface() {
-                    @Override
-                    public boolean act(float var1, Actor var2) {
-                        play();
-                        return true;
-                    }
+        float ratio_temp = 2;
+        if(turnAtTheMoment%GGameStart.member == 0){
+            ratio_temp = 3;
+        }
+        card.tileDown.addAction(moveTo((cards.get(turnAtTheMoment).size-1)*cfg.CW*Card.ratioScale - Card.ratioScale*cfg.CW/ratio_temp*(cards.get(turnAtTheMoment).size - 1),0, 0.2f));
+        card.image.addAction(sequence(
+                moveTo((cards.get(turnAtTheMoment).size-1)*cfg.CW*Card.ratioScale - Card.ratioScale*cfg.CW/ratio_temp*(cards.get(turnAtTheMoment).size - 1) ,0, 0.2f),
+                GSimpleAction.simpleAction((d,a) -> {
+                    play();
+                    return true;
                 })
 
         ));
@@ -446,6 +515,27 @@ public class Board {
                 if(dem > 21) result.set(0, -1);
                 else if(dem < 16) result.set(0, 0);
                 else result.set(0, dem);
+            }
+        }
+        else if(card.size == 3 && (card.get(0).values[1] == 1 || card.get(1).values[1] == 1 || card.get(2).values[1] == 1)){ //todo: 3 lá và có ít nhất 1 lá xì
+            int count1point = 0;
+            for(Card cardtemp : card){
+                if(cardtemp.values[1] == 1)
+                    count1point++;
+            }
+            if(count1point == 2){
+                result.set(0, -1);
+            }
+            else {
+                int count = 0;
+                count = card.get(0).values[1] + card.get(1).values[1] + card.get(2).values[1] + 9;
+                if(count > 21) {
+                    result.set(0, -1);
+                }
+                else if(count < 16) {
+                    result.set(0, 0);
+                }
+                else result.set(0, count);
             }
         }
         else if(card.size == 5){ // TODO: 5 LÁ BÀI

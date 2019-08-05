@@ -17,6 +17,7 @@ public class GSimpleAction extends Action {
       return this.actInterface.act(var1, this.actor);
    }
 
+   @FunctionalInterface
    public interface ActInterface {
       boolean act(float var1, Actor var2);
    }
