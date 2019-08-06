@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.*;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -14,6 +15,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.ss.GMain;
 import com.ss.core.action.exAction.GSimpleAction;
+import com.ss.core.effects.EffectSlide;
 import com.ss.core.util.GUI;
 import com.ss.gameLogic.scene.GGameMainScene;
 import com.ss.gameLogic.scene.GGameStart;
@@ -33,6 +35,7 @@ public class Board {
     int turnAtTheMoment = 1;
     int turnInitCards = 0;
     boolean flagTurnLightOfTurn1 = true;
+    EffectSlide slideButtonEffect;
 
     public Board(TextureAtlas gameMainAtlas, Group group){
         this.gameMainAtlas = gameMainAtlas;
@@ -42,22 +45,25 @@ public class Board {
         initPositionCardGroup();
         initResutl();
         startGame();
-
     }
 
     private void startGame(){
         startGameBtn = GUI.createImage(this.gameMainAtlas, "startGame");
         takeCardBtn = GUI.createImage(this.gameMainAtlas, "takeCard");
+        addlistenerTakeCard();
         group.addActor(startGameBtn);
         group.addActor(takeCardBtn);
         takeCardBtn.setVisible(false);
         startGameBtn.setPosition(GMain.screenWidth/2, GMain.screenHeight/2, Align.center);
+        slideButtonEffect = new EffectSlide(startGameBtn.getX() + 130, startGameBtn.getY() + 45, group);
+        group.addActor(slideButtonEffect);
         startGameBtn.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                super.clicked(event, x, y);
-                startGameBtn.setVisible(false);
-                startRenderCards();
+            super.clicked(event, x, y);
+            startGameBtn.setVisible(false);
+            slideButtonEffect.disposeEcffect();
+            startRenderCards();
             }
         });
     }
@@ -68,6 +74,78 @@ public class Board {
         initCards();
         //testPoint();
         //play();
+    }
+
+    private void addlistenerTakeCard(){
+        takeCardBtn.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                takeCardBtn.setTouchable(Touchable.disabled);
+                Gdx.app.log("debug", "click vao ne _ board_78!!");
+                takeCardBtn.setOrigin(Align.center);
+                takeCardBtn.addAction(Actions.sequence(
+                    Actions.sequence(
+                        scaleBy(-0.2f, -0.2f, 0.2f),
+                        scaleBy(0.2f, 0.2f, 0.2f)
+                    ),
+                    GSimpleAction.simpleAction((d, a)->{
+                        takeCardBtn.setTouchable(Touchable.enabled);
+                        getCardForPlayer();
+                        return true;
+                    }))
+                );
+            }
+        });
+    }
+
+    private void getCardForPlayer(){
+        Card card = new Card(gameMainAtlas, cardsGroup.get(0), (int)tiles.get(0).x, (int)tiles.get(0).y);
+        cards.get(0).add(card);
+        card.setPosition((cards.get(0).size - 1)*cfg.CW*2/3,0);
+        card.setScale(1);
+        card.setVisible(false);
+
+        Card cardmove = new Card(gameMainAtlas, group, 0, 0);
+        cardmove.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight- cfg.CH*Card.ratioScale)/2);
+        cardmove.tileDown.setVisible(false);
+
+        if(cards.get(0).size == 5) {
+            takeCardBtn.setTouchable(Touchable.disabled);
+            takeCardBtn.addAction(Actions.sequence(
+                delay(0.5f),
+                moveTo(takeCardBtn.getX(), GMain.screenHeight, 0.3f, Interpolation.fastSlow)
+            ));
+        }
+
+        tiles.removeIndex(0);
+        cardmove.image.addAction(sequence(
+            Actions.parallel(
+                Actions.scaleTo(1, 1, 0.3f, Interpolation.fastSlow),
+                moveTo(cardsGroup.get(0).getX() + (cards.get(0).size - 1)*cfg.CW*2/3 - 20, cardsGroup.get(0).getY(), 0.3f, Interpolation.fastSlow),
+                GSimpleAction.simpleAction((d, a)->{
+                    moveGroupCards(0);
+                    return true;
+                })),
+            GSimpleAction.simpleAction((d, a)-> {
+                Gdx.app.log("debug", "x-y" + card.image.getX() + "-" + card.image.getY() + " x1-y1: " + cardmove.image.getX() + "-" + cardmove.image.getY());
+                card.setVisible(true);
+                cardmove.removeCard();
+                cards.get(0).get(cards.get(0).size-1).image.setVisible(true);
+                cards.get(0).get(cards.get(0).size-1).addListenerClick();
+                return true;
+            })
+        ));
+    }
+
+    private void moveGroupCards(int index){
+        float ratio = Card.ratioScale;
+        if(index == 0)
+            ratio = 1;
+        Gdx.app.log("debug" , "khoang cach: " + -1*cfg.CW*ratio*1/3);
+        cardsGroup.get(index).addAction(
+                moveTo(cardsGroup.get(index).getX()-1*cfg.CW*ratio*1/3 + 30, cardsGroup.get(index).getY(), 0.3f, Interpolation.linear)
+        );
     }
 
     private void testPoint(){
@@ -251,10 +329,10 @@ public class Board {
         if(turnAtTheMoment == GGameStart.member){
             Gdx.app.log("debug", "het luot");
             GGameMainScene.turnLight.setVisible(false);
-            takeCardBtn.setPosition(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 10, GMain.screenHeight);
+            takeCardBtn.setPosition(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 60, GMain.screenHeight);
             takeCardBtn.setVisible(true);
             takeCardBtn.addAction(Actions.sequence(
-                moveTo(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 10, cardsGroup.get(0).getY(), 0.3f, Interpolation.fastSlow)
+                moveTo(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 60, cardsGroup.get(0).getY(), 0.3f, Interpolation.fastSlow)
             ));
             return;
         }
@@ -363,7 +441,7 @@ public class Board {
     private void getCard(){
         Card card = new Card(gameMainAtlas, cardsGroup.get(turnAtTheMoment), (int)tiles.get(0).x, (int)tiles.get(0).y);
         card.setVisible(false);
-        cards.get(turnAtTheMoment).addAll(card);
+        cards.get(turnAtTheMoment).add(card);
         cards.get(turnAtTheMoment).get(cards.get(turnAtTheMoment).size-1).image.setVisible(false);
         Gdx.app.log("debug", "size: " + cards.get(turnAtTheMoment).size + " cfg: " + cfg.CW);
 
