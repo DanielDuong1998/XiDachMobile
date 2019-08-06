@@ -28,6 +28,8 @@ public class Card extends Image {
         setScale(ratioScale);
         this.group.addActor(image);
         this.group.addActor(tileDown);
+        this.setDebug(true);
+        this.debug();
     }
 
     public void addListenerClick(){
@@ -51,8 +53,7 @@ public class Card extends Image {
         image.setOrigin(Align.center);
         image.setScale(0, ratio);
         tileDown.addAction(Actions.sequence(
-                Actions.delay(0.2f),
-                Actions.scaleBy(-1, 0, 0.2f),
+                Actions.scaleBy(-1, 0, 0.15f),
                 GSimpleAction.simpleAction((d, a)-> {
                     scaleImageCard(isNotBot);
                     return true;
@@ -62,7 +63,7 @@ public class Card extends Image {
 
     private void scaleImageCard(boolean isNotBot){
         float ratio = isNotBot ? 1 : 0.5f;
-        image.addAction(Actions.scaleTo(ratio, ratio, 0.2f));
+        image.addAction(Actions.scaleTo(ratio, ratio, 0.15f));
     }
 
     public void setPosition(float x, float y){

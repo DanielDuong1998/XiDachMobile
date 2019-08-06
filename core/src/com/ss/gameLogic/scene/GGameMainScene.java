@@ -28,8 +28,13 @@ public class GGameMainScene extends GScreen {
     Board board;
     Array<Vector2> positionGroup;
     Array<Vector2> positionFrameMoney;
+    Array<Vector2> positionFlipCards;
     Array<Integer> idAvatar;
     Array<FrameMoney> frameMoney;
+    public static Array<Image> flipCards;
+    public static Image flipAllCards;
+    String[] firstName;
+    String[] lastName;
     public static Image turnLight;
 
     @Override
@@ -51,8 +56,9 @@ public class GGameMainScene extends GScreen {
         renderBot();
         initFrameMoney();
         renderFrameMoney();
+        initFlipsCards();
+        renderFlipCards();
         board = new Board(gameMainAtlas, uiGroup);
-
     }
 
     @Override
@@ -60,8 +66,15 @@ public class GGameMainScene extends GScreen {
 
     }
 
+    private void initName(){
+        firstName = new String[]{"Vu", "Tuyen", "Calverley", "Alan", "Eggleston", "Ferryman", "Gail", "Daniel", "Josey", "Kim"};
+        lastName = new String[]{"Nguyen", "Isla", "Le", "Emily", "Poppy", "Phan", "Duong", "Jessica", "Tracy", "Junmi"};
+
+    }
+
     private void initUI(){
         GStage.addToLayer(GLayer.ui, uiGroup);
+        initName();
         Image bg = GUI.createImage(gameMainAtlas, "bg");
         Image table = GUI.createImage(gameMainAtlas, "table");
         Image cardDown = GUI.createImage(gameMainAtlas, "00");
@@ -75,6 +88,18 @@ public class GGameMainScene extends GScreen {
         turnLight = GUI.createImage(this.gameMainAtlas, "turnLight");
         uiGroup.addActor(turnLight);
         turnLight.setVisible(false);
+    }
+
+    private void initFlipsCards(){
+        flipCards = new Array<>();
+        flipAllCards = GUI.createImage(this.gameMainAtlas, "flipAll");
+        /////////////////////////////////////////// code tới đây!!!
+        for(int i = 0; i < GGameStart.member - 1; i++){
+            Image image = GUI.createImage(this.gameMainAtlas, "flipCards");
+            uiGroup.addActor(image);
+            flipCards.add(image);
+            image.setVisible(false);
+        }
     }
 
     private void initGroupBot(){
@@ -131,9 +156,16 @@ public class GGameMainScene extends GScreen {
         }
     }
 
+    private void renderFlipCards(){
+        for(int i = 0; i < GGameStart.member - 1; i++) {
+            flipCards.get(i).setPosition(positionFlipCards.get(i).x, positionFlipCards.get(i).y);
+        }
+    }
+
     private void initPositionGroup(){
         positionGroup = new Array<>();
         positionFrameMoney = new Array<>();
+        positionFlipCards = new Array<>();
         switch (GGameStart.member){
             case 2: {
                 Vector2 position = new Vector2(GMain.screenWidth/2, 100);
@@ -142,6 +174,9 @@ public class GGameMainScene extends GScreen {
                 Vector2 positionM0 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, GMain.screenHeight - 220);
                 Vector2 positionM1 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 200);
                 positionFrameMoney.add(positionM0, positionM1);
+
+                Vector2 positionF = new Vector2(GMain.screenWidth/2 + 50, 100);
+                positionFlipCards.add(positionF);
                 break;
             }
             case 3: {
@@ -150,9 +185,13 @@ public class GGameMainScene extends GScreen {
                 positionGroup.add(position0, position1);
 
                 Vector2 positionM0 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, GMain.screenHeight - 220);
-                Vector2 positionM1 = new Vector2(GMain.screenWidth - 420, 150);
+                Vector2 positionM1 = new Vector2(GMain.screenWidth - 420 - 50, 150);
                 Vector2 positionM2 = new Vector2(320, 150);
                 positionFrameMoney.add(positionM0, positionM1, positionM2);
+
+                Vector2 positionF0 = new Vector2(GMain.screenWidth - 250, 250);
+                Vector2 positionF1 = new Vector2(120, 250);
+                positionFlipCards.add(positionF0, positionF1);
                 break;
             }
             case 4: {
@@ -166,6 +205,11 @@ public class GGameMainScene extends GScreen {
                 Vector2 positionM2 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 200);
                 Vector2 positionM3 = new Vector2(250, GMain.screenHeight/2);
                 positionFrameMoney.add(positionM0, positionM1, positionM2, positionM3);
+
+                Vector2 positionF0 = new Vector2(GMain.screenWidth-150, GMain.screenHeight/2 + 100 );
+                Vector2 positionF1 = new Vector2(GMain.screenWidth/2 + 50, 100);
+                Vector2 positionF2 = new Vector2(100, GMain.screenHeight/2  + 100);
+                positionFlipCards.add(positionF0, positionF1, positionF2);
                 break;
             }
             case 5: {
@@ -177,12 +221,18 @@ public class GGameMainScene extends GScreen {
 
 
                 Vector2 positionM0 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, GMain.screenHeight - 220);
-                Vector2 positionM1 = new Vector2(GMain.screenWidth - 420, GMain.screenHeight - 250);
-                Vector2 positionM2 = new Vector2(GMain.screenWidth - 420, 150);
+                Vector2 positionM1 = new Vector2(GMain.screenWidth - 420 - 50, GMain.screenHeight - 250);
+                Vector2 positionM2 = new Vector2(GMain.screenWidth - 420 - 50, 150);
                 Vector2 positionM3 = new Vector2(320, 150);
                 Vector2 positionM4 = new Vector2(320, GMain.screenHeight - 250);
                 positionFrameMoney.add(positionM0, positionM1, positionM2, positionM3);
                 positionFrameMoney.add(positionM4);
+
+                Vector2 positionF0 = new Vector2(GMain.screenWidth - 250, GMain.screenHeight - 150);
+                Vector2 positionF1 = new Vector2(GMain.screenWidth - 250, 250);
+                Vector2 positionF2 = new Vector2(120, 250);
+                Vector2 positionF3 = new Vector2(120, GMain.screenHeight - 150);
+                positionFlipCards.add(positionF0, positionF1, positionF2, positionF3);
                 break;
             }
             default: {
@@ -194,14 +244,22 @@ public class GGameMainScene extends GScreen {
                 positionGroup.add(position0, position1, position2, position3);
                 positionGroup.add(position4);
 
-                Vector2 positionM0 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, GMain.screenHeight - 220);
-                Vector2 positionM1 = new Vector2(GMain.screenWidth - 420, GMain.screenHeight - 250);
-                Vector2 positionM2 = new Vector2(GMain.screenWidth - 420, 150);
+                Vector2 positionM0 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2 , GMain.screenHeight - 220);
+                Vector2 positionM1 = new Vector2(GMain.screenWidth - 420 - 50, GMain.screenHeight - 250);
+                Vector2 positionM2 = new Vector2(GMain.screenWidth - 420 - 50, 150);
                 Vector2 positionM3 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 200);
                 Vector2 positionM4 = new Vector2(320, 150);
                 Vector2 positionM5 = new Vector2(320, GMain.screenHeight - 250);
                 positionFrameMoney.add(positionM0, positionM1, positionM2, positionM3);
                 positionFrameMoney.add(positionM4, positionM5);
+
+                Vector2 positionF0 = new Vector2(GMain.screenWidth - 250, GMain.screenHeight - 150);
+                Vector2 positionF1 = new Vector2(GMain.screenWidth - 250, 250);
+                Vector2 positionF2 = new Vector2(GMain.screenWidth/2 + 50, 100);
+                Vector2 positionF3 = new Vector2(120, 250);
+                Vector2 positionF4 = new Vector2(120, GMain.screenHeight - 150);
+                positionFlipCards.add(positionF0, positionF1, positionF2, positionF3);
+                positionFlipCards.add(positionF4);
                 break;
             }
         }

@@ -72,8 +72,6 @@ public class Board {
         renderPositionCard();
         initTiles();
         initCards();
-        //testPoint();
-        //play();
     }
 
     private void addlistenerTakeCard(){
@@ -86,11 +84,10 @@ public class Board {
                 takeCardBtn.setOrigin(Align.center);
                 takeCardBtn.addAction(Actions.sequence(
                     Actions.sequence(
-                        scaleBy(-0.2f, -0.2f, 0.2f),
-                        scaleBy(0.2f, 0.2f, 0.2f)
+                        scaleBy(-0.2f, -0.2f, 0.2f, Interpolation.circleIn),
+                        scaleBy(0.2f, 0.2f, 0.2f, Interpolation.circleOut)
                     ),
                     GSimpleAction.simpleAction((d, a)->{
-                        takeCardBtn.setTouchable(Touchable.enabled);
                         getCardForPlayer();
                         return true;
                     }))
@@ -102,19 +99,31 @@ public class Board {
     private void getCardForPlayer(){
         Card card = new Card(gameMainAtlas, cardsGroup.get(0), (int)tiles.get(0).x, (int)tiles.get(0).y);
         cards.get(0).add(card);
+        Vector2 result = checkPoint(cards.get(0));
+        boolean flag = false;
+        if(!(result.x == 0 && (result.y == -1 || result.y == 21)))
+            takeCardBtn.setTouchable(Touchable.enabled);
+        else flag = true;
         card.setPosition((cards.get(0).size - 1)*cfg.CW*2/3,0);
         card.setScale(1);
         card.setVisible(false);
+
 
         Card cardmove = new Card(gameMainAtlas, group, 0, 0);
         cardmove.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight- cfg.CH*Card.ratioScale)/2);
         cardmove.tileDown.setVisible(false);
 
-        if(cards.get(0).size == 5) {
+        if(cards.get(0).size == 5 || flag) {
             takeCardBtn.setTouchable(Touchable.disabled);
             takeCardBtn.addAction(Actions.sequence(
                 delay(0.5f),
-                moveTo(takeCardBtn.getX(), GMain.screenHeight, 0.3f, Interpolation.fastSlow)
+                moveTo(takeCardBtn.getX(), GMain.screenHeight, 0.3f, Interpolation.fastSlow),
+                    GSimpleAction.simpleAction((d, a)->{
+                        for(int i = 0; i < GGameStart.member - 1; i++) {
+                            GGameMainScene.flipCards.get(i).setVisible(true);
+                        }
+                        return true;
+                    })
             ));
         }
 
@@ -139,12 +148,16 @@ public class Board {
     }
 
     private void moveGroupCards(int index){
-        float ratio = Card.ratioScale;
-        if(index == 0)
-            ratio = 1;
-        Gdx.app.log("debug" , "khoang cach: " + -1*cfg.CW*ratio*1/3);
+        float ratioScale = Card.ratioScale;
+        float padding = 25;
+        float ratio = 2;
+        if(index == 0){
+            ratioScale = 1;
+            padding = 30;
+            ratio = 3;
+        }
         cardsGroup.get(index).addAction(
-                moveTo(cardsGroup.get(index).getX()-1*cfg.CW*ratio*1/3 + 30, cardsGroup.get(index).getY(), 0.3f, Interpolation.linear)
+                moveTo(cardsGroup.get(index).getX()-1*cfg.CW*ratioScale*1/ratio+ padding, cardsGroup.get(index).getY(), 0.2f, Interpolation.linear)
         );
     }
 
@@ -320,6 +333,26 @@ public class Board {
         }
     }
 
+    private void playerTurn(){
+        Gdx.app.log("debug", "het luot");
+        Vector2 result = checkPoint(cards.get(0));
+        if(result.x == 0 && result.y == 21){
+            flipCards();
+            return;
+        }
+        else if(result.x == 0 && result.y >= 16){
+            for(int i = 0; i < GGameStart.member - 1; i++) {
+                GGameMainScene.flipCards.get(i).setVisible(true);
+            }
+        }
+        GGameMainScene.turnLight.setVisible(false);
+        takeCardBtn.setPosition(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 90, GMain.screenHeight);
+        takeCardBtn.setVisible(true);
+        takeCardBtn.addAction(Actions.sequence(
+            moveTo(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 90, cardsGroup.get(0).getY(), 0.3f, Interpolation.fastSlow)
+        ));
+    }
+
     private void play(){
         if(turnAtTheMoment == 1 && flagTurnLightOfTurn1){
             flagTurnLightOfTurn1 = false;
@@ -327,13 +360,7 @@ public class Board {
            return;
         }
         if(turnAtTheMoment == GGameStart.member){
-            Gdx.app.log("debug", "het luot");
-            GGameMainScene.turnLight.setVisible(false);
-            takeCardBtn.setPosition(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 60, GMain.screenHeight);
-            takeCardBtn.setVisible(true);
-            takeCardBtn.addAction(Actions.sequence(
-                moveTo(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 60, cardsGroup.get(0).getY(), 0.3f, Interpolation.fastSlow)
-            ));
+           playerTurn();
             return;
         }
 
@@ -391,7 +418,12 @@ public class Board {
         }
         else {
             GGameMainScene.turnLight.setPosition(cardsGroup.get(turnAtTheMoment).getX() - 150, cardsGroup.get(turnAtTheMoment).getY() - 200);
+            GGameMainScene.turnLight.setScale(0.4f);
+            GGameMainScene.turnLight.setOrigin(Align.center);
+
+            GGameMainScene.turnLight.addAction(Actions.scaleTo(1,1,0.4f,Interpolation.fastSlow));
             GGameMainScene.turnLight.setVisible(true);
+
             group.addAction(Actions.sequence(
                 delay(1f),
                 GSimpleAction.simpleAction((d, a)->{
@@ -441,41 +473,27 @@ public class Board {
     private void getCard(){
         Card card = new Card(gameMainAtlas, cardsGroup.get(turnAtTheMoment), (int)tiles.get(0).x, (int)tiles.get(0).y);
         card.setVisible(false);
+        card.setPosition((cards.get(turnAtTheMoment).size)*cfg.CW*Card.ratioScale*1/2,0);
         cards.get(turnAtTheMoment).add(card);
-        cards.get(turnAtTheMoment).get(cards.get(turnAtTheMoment).size-1).image.setVisible(false);
-        Gdx.app.log("debug", "size: " + cards.get(turnAtTheMoment).size + " cfg: " + cfg.CW);
-
         Card cardmove = new Card(gameMainAtlas, group, 0, 0);
-        cardmove.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight- cfg.CH*Card.ratioScale)/2);
-        cardmove.image.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight- cfg.CH*Card.ratioScale)/2);
-
+        cardmove.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight - cfg.CH*Card.ratioScale)/2);
         tiles.removeIndex(0);
         cardmove.image.addAction(sequence(
             delay(0.8f),
-            moveTo(cardsGroup.get(turnAtTheMoment).getX(), cardsGroup.get(turnAtTheMoment).getY(), 0.3f, Interpolation.fastSlow),
+            Actions.parallel(
+                    moveTo(cardsGroup.get(turnAtTheMoment).getX() + (cards.get(turnAtTheMoment).size - 1)*cfg.CW*Card.ratioScale*1/2 - 15, cardsGroup.get(turnAtTheMoment).getY(), 0.3f, Interpolation.fastSlow),
+                    GSimpleAction.simpleAction((d, a)->{
+                        moveGroupCards(turnAtTheMoment);
+                        return true;
+                    })
+                    ),
             GSimpleAction.simpleAction((d, a)-> {
                 card.setVisible(true);
                 cardmove.removeCard();
                 cards.get(turnAtTheMoment).get(cards.get(turnAtTheMoment).size-1).image.setVisible(true);
-                moveCardInAGroup(cards.get(turnAtTheMoment).get(cards.get(turnAtTheMoment).size-1));
+                play();
                 return true;
             })
-        ));
-    }
-
-    private void moveCardInAGroup(Card card){
-        float ratio_temp = 2;
-        if(turnAtTheMoment%GGameStart.member == 0){
-            ratio_temp = 3;
-        }
-        card.tileDown.addAction(moveTo((cards.get(turnAtTheMoment).size-1)*cfg.CW*Card.ratioScale - Card.ratioScale*cfg.CW/ratio_temp*(cards.get(turnAtTheMoment).size - 1),0, 0.2f));
-        card.image.addAction(sequence(
-                moveTo((cards.get(turnAtTheMoment).size-1)*cfg.CW*Card.ratioScale - Card.ratioScale*cfg.CW/ratio_temp*(cards.get(turnAtTheMoment).size - 1) ,0, 0.2f),
-                GSimpleAction.simpleAction((d,a) -> {
-                    play();
-                    return true;
-                })
-
         ));
     }
 
@@ -608,7 +626,9 @@ public class Board {
                 int count = 0;
                 count = card.get(0).values[1] + card.get(1).values[1] + card.get(2).values[1] + 9;
                 if(count > 21) {
-                    result.set(0, -1);
+                    if(count - 9 >= 16)
+                        result.set(0, count - 9);
+                    else result.set(0, 0);
                 }
                 else if(count < 16) {
                     result.set(0, 0);
