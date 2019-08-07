@@ -18,6 +18,8 @@ public class Card extends Image {
     public Image tileDown;
     int[] values;
     public static float ratioScale = 0.5f;
+    boolean isFlip = true;
+    //
 
     public Card(TextureAtlas gameMainAtlas, Group group, int element, int value){
         this.gameMainAtlas = gameMainAtlas;
@@ -43,21 +45,25 @@ public class Card extends Image {
     }
 
     public void flipCard(boolean isNotBot){
-        if(!isNotBot){
-            tileDown.setVisible(false);
-            return;
-        }
-        float ratio = isNotBot ? 1 : 0.5f;
         tileDown.setTouchable(Touchable.disabled);
         tileDown.setOrigin(Align.center);
         image.setOrigin(Align.center);
-        image.setScale(0, ratio);
+//        if(!isNotBot){
+//            tileDown.setVisible(false);
+//            return;
+//        }
+        float ratio = isNotBot ? 1 : 0.5f;
+
+        if(isFlip){
+            image.setScale(0, ratio);
+            isFlip = false;
+        }
         tileDown.addAction(Actions.sequence(
-                Actions.scaleBy(-1, 0, 0.15f),
-                GSimpleAction.simpleAction((d, a)-> {
-                    scaleImageCard(isNotBot);
-                    return true;
-                })
+            Actions.scaleTo(0, tileDown.getScaleY(), 0.15f),
+            GSimpleAction.simpleAction((d, a)-> {
+                scaleImageCard(isNotBot);
+                return true;
+            })
         ));
     }
 

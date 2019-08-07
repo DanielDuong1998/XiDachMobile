@@ -20,12 +20,14 @@ import com.ss.core.util.GUI;
 import com.ss.gameLogic.scene.GGameMainScene;
 import com.ss.gameLogic.scene.GGameStart;
 
+
 public class Board {
     TextureAtlas gameMainAtlas;
     Group group;
     BoardConfig cfg;
     Image startGameBtn;
     Image takeCardBtn;
+    Image flipAllCardsBtn;
     Array<Vector2> tiles;
     Array<Array<Card>> cards;
     Array<Array<Card>> cards_temp;
@@ -36,24 +38,34 @@ public class Board {
     int turnInitCards = 0;
     boolean flagTurnLightOfTurn1 = true;
     EffectSlide slideButtonEffect;
+    boolean[] idBotOverTurn;
 
     public Board(TextureAtlas gameMainAtlas, Group group){
         this.gameMainAtlas = gameMainAtlas;
         this.group = group;
         cfg = new BoardConfig();
+        initIdBotOverTurn();
         initCardsGroup();
         initPositionCardGroup();
         initResutl();
+        addListenerFlipCardBtn();
         startGame();
+
     }
 
     private void startGame(){
         startGameBtn = GUI.createImage(this.gameMainAtlas, "startGame");
         takeCardBtn = GUI.createImage(this.gameMainAtlas, "takeCard");
-        addlistenerTakeCard();
+        flipAllCardsBtn = GUI.createImage(this.gameMainAtlas, "flipAll");
+        addlistenerButton();
         group.addActor(startGameBtn);
         group.addActor(takeCardBtn);
+        group.addActor(flipAllCardsBtn);
+        flipAllCardsBtn.setPosition(850, GMain.screenHeight);
+
+
         takeCardBtn.setVisible(false);
+        flipAllCardsBtn.setVisible(false);
         startGameBtn.setPosition(GMain.screenWidth/2, GMain.screenHeight/2, Align.center);
         slideButtonEffect = new EffectSlide(startGameBtn.getX() + 130, startGameBtn.getY() + 45, group);
         group.addActor(slideButtonEffect);
@@ -68,42 +80,133 @@ public class Board {
         });
     }
 
+    private void addListenerFlipCardBtn() {
+        for(int i = 0; i < GGameMainScene.flipCards.size; i++) {
+            final int itemp = i;
+            GGameMainScene.flipCards.get(i).addListener(new ClickListener(){
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    super.clicked(event, x, y);
+                    GGameMainScene.flipCards.get(itemp).setTouchable(Touchable.disabled);
+                    flipACards(itemp+1);
+                    return;
+                }
+            });
+        }
+    }
+
+    private void initIdBotOverTurn(){
+        idBotOverTurn = new boolean[GGameStart.member - 1];
+        for(int i = 0; i < idBotOverTurn.length; i++) {
+            idBotOverTurn[i] = false;
+        }
+    }
+
+    private void flipACards(int index){
+        Gdx.app.log("debug", "index: " + index);
+        GGameMainScene.flipCards.get(index-1).setOrigin(Align.center);
+        GGameMainScene.flipCards.get(index-1).addAction(Actions.sequence(
+                Actions.sequence(
+                        scaleBy(-0.2f, -0.2f, 0.2f, Interpolation.circleIn),
+                        scaleBy(0.2f, 0.2f, 0.2f, Interpolation.circleOut)
+                ),
+                GSimpleAction.simpleAction((d, a)->{
+                    GGameMainScene.flipCards.get(index-1).setVisible(false);
+                    cardsGroup.get(index).setPosition(cardsGroup.get(index).getX() - cfg.CW*Card.ratioScale/2, cardsGroup.get(index).getY() - cfg.CH*Card.ratioScale/2);
+                    for(int i = 0; i < cards.get(index).size; i++){
+                         cards.get(index).get(i).flipCard(false);
+                    };
+                    return true;
+                }))
+        );
+    }
+
     private void startRenderCards(){
         renderPositionCard();
         initTiles();
         initCards();
     }
 
-    private void addlistenerTakeCard(){
+    private void addlistenerButton(){
         takeCardBtn.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                super.clicked(event, x, y);
-                takeCardBtn.setTouchable(Touchable.disabled);
-                Gdx.app.log("debug", "click vao ne _ board_78!!");
-                takeCardBtn.setOrigin(Align.center);
-                takeCardBtn.addAction(Actions.sequence(
-                    Actions.sequence(
-                        scaleBy(-0.2f, -0.2f, 0.2f, Interpolation.circleIn),
-                        scaleBy(0.2f, 0.2f, 0.2f, Interpolation.circleOut)
-                    ),
-                    GSimpleAction.simpleAction((d, a)->{
-                        getCardForPlayer();
-                        return true;
-                    }))
-                );
+            super.clicked(event, x, y);
+            takeCardBtn.setTouchable(Touchable.disabled);
+            Gdx.app.log("debug", "click vao ne _ board_78!!");
+            takeCardBtn.setOrigin(Align.center);
+            takeCardBtn.addAction(Actions.sequence(
+                Actions.sequence(
+                    scaleBy(-0.2f, -0.2f, 0.2f, Interpolation.circleIn),
+                    scaleBy(0.2f, 0.2f, 0.2f, Interpolation.circleOut)
+                ),
+                GSimpleAction.simpleAction((d, a)->{
+                    getCardForPlayer();
+                    return true;
+                }))
+            );
             }
         });
+
+        flipAllCardsBtn.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+            super.clicked(event, x, y);
+            flipAllCardsBtn.setTouchable(Touchable.disabled);
+            Gdx.app.log("debug", "board_106 _ click ne");
+            flipAllCardsBtn.setOrigin(Align.center);
+            flipAllCardsBtn.addAction(Actions.sequence(
+                Actions.sequence(
+                    scaleBy(-0.2f, -0.2f, 0.2f, Interpolation.circleIn),
+                    scaleBy(0.2f, 0.2f, 0.2f, Interpolation.circleOut)
+                ),
+                GSimpleAction.simpleAction((d, a)->{
+                    for(int i = 0; i < GGameMainScene.flipCards.size; i++) {
+                        GGameMainScene.flipCards.get(i).setVisible(false);
+                    }
+                    takeCardBtn.setVisible(false);
+                    flipAllCardsBtn.setVisible(false);
+                    flipAllCards();
+                    return true;
+                }))
+            );
+            }
+        });
+    }
+
+    private void flipAllCards(){
+        for(int index = 1; index < GGameStart.member; index++) {
+            cardsGroup.get(index).setPosition(cardsGroup.get(index).getX() - cfg.CW*Card.ratioScale/2, cardsGroup.get(index).getY() - cfg.CH*Card.ratioScale/2);
+        }
+        for(int index = 0; index < GGameStart.member; index++) {
+            for(int i = 0; i < cards.get(index).size; i++){
+                if(index == 0)
+                    cards.get(index).get(i).flipCard(true);
+                else cards.get(index).get(i).flipCard(false);
+            }
+        }
     }
 
     private void getCardForPlayer(){
         Card card = new Card(gameMainAtlas, cardsGroup.get(0), (int)tiles.get(0).x, (int)tiles.get(0).y);
         cards.get(0).add(card);
         Vector2 result = checkPoint(cards.get(0));
-        boolean flag = false;
-        if(!(result.x == 0 && (result.y == -1 || result.y == 21)))
+        boolean flag = false, flag1 = false;
+        if(!(result.x == 0 && (result.y == -1 || result.y == 21))) {
             takeCardBtn.setTouchable(Touchable.enabled);
-        else flag = true;
+            if(result.y != 0){
+                flag1 = true;
+            }
+        }
+        else {
+            flag = true;
+            if(result.y == -1){
+               // flipAllCardsBtn.setVisible(false);
+                //goi ham chung tien::::!!!!
+                flag1 = false;
+            }
+            else flag1 = true;
+        }
         card.setPosition((cards.get(0).size - 1)*cfg.CW*2/3,0);
         card.setScale(1);
         card.setVisible(false);
@@ -112,7 +215,7 @@ public class Board {
         Card cardmove = new Card(gameMainAtlas, group, 0, 0);
         cardmove.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight- cfg.CH*Card.ratioScale)/2);
         cardmove.tileDown.setVisible(false);
-
+        final boolean flag1_temp = flag1;
         if(cards.get(0).size == 5 || flag) {
             takeCardBtn.setTouchable(Touchable.disabled);
             takeCardBtn.addAction(Actions.sequence(
@@ -120,8 +223,10 @@ public class Board {
                 moveTo(takeCardBtn.getX(), GMain.screenHeight, 0.3f, Interpolation.fastSlow),
                     GSimpleAction.simpleAction((d, a)->{
                         for(int i = 0; i < GGameStart.member - 1; i++) {
-                            GGameMainScene.flipCards.get(i).setVisible(true);
+                            if(!idBotOverTurn[i])
+                                GGameMainScene.flipCards.get(i).setVisible(true);
                         }
+                        moveFlipAllCards(flag1_temp);
                         return true;
                     })
             ));
@@ -147,6 +252,17 @@ public class Board {
         ));
     }
 
+    private void moveFlipAllCards(boolean flag1){
+        flipAllCardsBtn.setVisible(flag1);
+        flipAllCardsBtn.addAction(Actions.sequence(
+            moveTo(850, cardsGroup.get(0).getY(), 0.3f, Interpolation.fastSlow),
+            GSimpleAction.simpleAction((d, a)->{
+                flipAllCardsBtn.setTouchable(Touchable.enabled);
+                return true;
+            })
+        ));
+    }
+
     private void moveGroupCards(int index){
         float ratioScale = Card.ratioScale;
         float padding = 25;
@@ -157,22 +273,8 @@ public class Board {
             ratio = 3;
         }
         cardsGroup.get(index).addAction(
-                moveTo(cardsGroup.get(index).getX()-1*cfg.CW*ratioScale*1/ratio+ padding, cardsGroup.get(index).getY(), 0.2f, Interpolation.linear)
+            moveTo(cardsGroup.get(index).getX()-1*cfg.CW*ratioScale*1/ratio+ padding, cardsGroup.get(index).getY(), 0.2f, Interpolation.linear)
         );
-    }
-
-    private void testPoint(){
-        Array<Card> cardtest = new Array<>();
-        Card card1 = new Card(gameMainAtlas, group, 1, 9);
-        Card card2 = new Card(gameMainAtlas, group,2 , 13);
-        Card card3 = new Card(gameMainAtlas, group, 0, 3);
-        Card card4 = new Card(gameMainAtlas, group, 0, 2);
-        Card card5 = new Card(gameMainAtlas, group, 0, 2);
-        cardtest.add(card1, card2)/*, card3, card4)*/;
-        //cardtest.add(card5);
-
-        int percent = percentGetCard(cardtest);
-        Gdx.app.log("debug", "percent: " + percent);
     }
 
     private void sortCardsAtTheStart(){
@@ -237,6 +339,9 @@ public class Board {
             Gdx.app.log("debug_Board_143", "end Game roi ne, goi ham lat bai");
             cards.get(0).get(0).flipCard(true);
             cards.get(0).get(1).flipCard(true);
+            for(int index = 1; index  < GGameStart.member; index++) {
+                cardsGroup.get(index).setPosition(cardsGroup.get(index).getX() - cfg.CW*Card.ratioScale/2, cardsGroup.get(index).getY() - cfg.CH*Card.ratioScale/2);
+            }
             for(int i = 1; i < cards.size; i++) {
                 cards.get(i).get(0).flipCard(false);
                 cards.get(i).get(1).flipCard(false);
@@ -246,6 +351,8 @@ public class Board {
         for(int i = 1; i < cards.size; i++) {
             resutl = checkPoint(cards.get(i));
             if(resutl.x == 0 && (resutl.y == 1 || resutl.y == 2)){
+                idBotOverTurn[i-1] = true;
+                cardsGroup.get(i).setPosition(cardsGroup.get(i).getX() - cfg.CW*Card.ratioScale/2, cardsGroup.get(i).getY() - cfg.CH*Card.ratioScale/2);
                 cards.get(i).get(0).flipCard(false);
                 cards.get(i).get(1).flipCard(false);
             }
@@ -341,6 +448,8 @@ public class Board {
             return;
         }
         else if(result.x == 0 && result.y >= 16){
+            flipAllCardsBtn.setVisible(true);
+            moveFlipAllCards(true);
             for(int i = 0; i < GGameStart.member - 1; i++) {
                 GGameMainScene.flipCards.get(i).setVisible(true);
             }
@@ -523,42 +632,42 @@ public class Board {
         switch (GGameStart.member){
             case 2: {
                 Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH);
-                Vector2 position1 = new Vector2((GMain.screenWidth - cfg.CW*2*Card.ratioScale)/2, 105);
+                Vector2 position1 = new Vector2((GMain.screenWidth - cfg.CW*2*Card.ratioScale)/2, 105 + 10);
                 positionCardGroup.add(position0, position1);
                 break;
             }
             case 3: {
                 Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH);
-                Vector2 position1 = new Vector2(GMain.screenWidth - 250, 155);
-                Vector2 position2 = new Vector2( 150, 155);
+                Vector2 position1 = new Vector2(GMain.screenWidth - 250, 155 + 10);
+                Vector2 position2 = new Vector2( 150, 155 + 10);
                 positionCardGroup.add(position0, position1, position2);
                 break;
             }
             case 4: {
                 Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH);
-                Vector2 position1 = new Vector2(GMain.screenWidth - 150, GMain.screenHeight/2 + 5);
-                Vector2 position2 = new Vector2((GMain.screenWidth - cfg.CW*2*Card.ratioScale)/2, 105);
-                Vector2 position3 = new Vector2(100, GMain.screenHeight/2 + 5);
+                Vector2 position1 = new Vector2(GMain.screenWidth - 150, GMain.screenHeight/2 + 5 + 10);
+                Vector2 position2 = new Vector2((GMain.screenWidth - cfg.CW*2*Card.ratioScale)/2, 105 + 10);
+                Vector2 position3 = new Vector2(100, GMain.screenHeight/2 + 5 + 10);
                 positionCardGroup.add(position0, position1, position2, position3);
                 break;
             }
             case 5: {
                 Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH);
-                Vector2 position1 = new Vector2(GMain.screenWidth - 250, GMain.screenHeight - 245);
-                Vector2 position2 = new Vector2(GMain.screenWidth - 250, 155);
-                Vector2 position3 = new Vector2(150, 155);
-                Vector2 position4 = new Vector2(150, GMain.screenHeight - 245);
+                Vector2 position1 = new Vector2(GMain.screenWidth - 250, GMain.screenHeight - 245 + 10);
+                Vector2 position2 = new Vector2(GMain.screenWidth - 250, 155 + 10);
+                Vector2 position3 = new Vector2(150, 155 + 10);
+                Vector2 position4 = new Vector2(150, GMain.screenHeight - 245 + 10);
                 positionCardGroup.add(position0, position1, position2);
                 positionCardGroup.add(position3, position4);
                 break;
             }
             default: {
                 Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH);
-                Vector2 position1 = new Vector2(GMain.screenWidth - 250, GMain.screenHeight - 245);
-                Vector2 position2 = new Vector2(GMain.screenWidth - 250, 155);
-                Vector2 position3 = new Vector2((GMain.screenWidth - cfg.CW*2*Card.ratioScale)/2, 105);
-                Vector2 position4 = new Vector2(150, 155);
-                Vector2 position5 = new Vector2(150, GMain.screenHeight - 245);
+                Vector2 position1 = new Vector2(GMain.screenWidth - 250, GMain.screenHeight - 245 + 10);
+                Vector2 position2 = new Vector2(GMain.screenWidth - 250, 155 + 10);
+                Vector2 position3 = new Vector2((GMain.screenWidth - cfg.CW*2*Card.ratioScale)/2, 105 + 10);
+                Vector2 position4 = new Vector2(150, 155 + 10);
+                Vector2 position5 = new Vector2(150, GMain.screenHeight - 245 + 10);
                 positionCardGroup.add(position0, position1, position2);
                 positionCardGroup.add(position3, position4, position5);
                 break;
@@ -619,21 +728,40 @@ public class Board {
                 if(cardtemp.values[1] == 1)
                     count1point++;
             }
-            if(count1point == 2){
-                result.set(0, -1);
-            }
-            else {
-                int count = 0;
-                count = card.get(0).values[1] + card.get(1).values[1] + card.get(2).values[1] + 9;
-                if(count > 21) {
-                    if(count - 9 >= 16)
-                        result.set(0, count - 9);
+            if(count1point == 1) {//todo: 1 la xi va 2 la khong phai la xi
+                int value0 = getValueCard(card.get(0));
+                int value1 = getValueCard(card.get(1));
+                int value2 = getValueCard(card.get(2));
+                int total = value0 + value1 + value2;
+                if((total + 10) > 21){
+                    if((total + 9) > 21) {
+                        if(total > 21){
+                            result.set(0, -1);
+                        }
+                        else if(total >= 16)
+                            result.set(0, total);
+                        else result.set(0, 0);
+                    }
+                    else if(total + 9 >= 16)
+                        result.set(0, total + 9);
                     else result.set(0, 0);
                 }
-                else if(count < 16) {
-                    result.set(0, 0);
+                else if(total + 10 >= 16)
+                    result.set(0, total + 10);
+                else result.set(0, 0);
+            }
+            else{ // todo: 2 la xi va 1 la khong phai
+                int value0 = getValueCard(card.get(0));
+                int value1 = getValueCard(card.get(1));
+                int value2 = getValueCard(card.get(2));
+                int total = value0 + value1 + value2;
+                if(total > 21){
+                    result.set(0, -1);
                 }
-                else result.set(0, count);
+                else if(total >= 16) {
+                    result.set(0, total);
+                }
+                else result.set(0, 0);
             }
         }
         else if(card.size == 5){ // TODO: 5 LÁ BÀI
@@ -665,5 +793,13 @@ public class Board {
         }
 
         return result;
+    }
+
+    private int getValueCard(Card card){//todo: truyen vao la bai, tra ve gia tri la bai
+        int value = 0;
+        value = card.values[1];
+        if(value >= 10)
+            value = 10;
+        return value;
     }
 }
