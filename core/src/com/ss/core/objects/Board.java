@@ -88,12 +88,12 @@ public class Board {
             @Override
             public void clicked(InputEvent event, float x, float y) {
             super.clicked(event, x, y);
+            SoundEffect.Play(SoundEffect.buttonStartGame);
             startGameBtn.setVisible(false);
             slideButtonEffect.disposeEcffect();
 
             //am thanh
             Tweens.setTimeout(group, 0.5f, ()->{
-                SoundEffect.Play(SoundEffect.renderCards);
                 startRenderCards();
             });
             }
@@ -102,6 +102,7 @@ public class Board {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
+                SoundEffect.Play(SoundEffect.buttonNewGame);
                 newGameBtn.setVisible(false);
                 replay();
             }
@@ -115,6 +116,7 @@ public class Board {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
+                SoundEffect.Play(SoundEffect.buttonFlipCards);
                 count++;
                 idBotOverTurn[itemp] = true;
                 GGameMainScene.flipCards.get(itemp).setTouchable(Touchable.disabled);
@@ -134,7 +136,10 @@ public class Board {
 
     private void flipACards(int index){
         GGameMainScene.flipCards.get(index-1).setOrigin(Align.center);
-        int delta = checkCardsWidthPlayer(cards.get(index));
+
+        Tweens.setTimeout(group, 0.4f, ()->{
+            SoundEffect.Play(SoundEffect.flipCards);
+        });
         GGameMainScene.flipCards.get(index-1).addAction(Actions.sequence(
             Actions.sequence(
                     scaleBy(-0.2f, -0.2f, 0.2f, Interpolation.circleIn),
@@ -182,6 +187,7 @@ public class Board {
             @Override
             public void clicked(InputEvent event, float x, float y) {
             super.clicked(event, x, y);
+            SoundEffect.Play(SoundEffect.button);
             takeCardBtn.setTouchable(Touchable.disabled);
             Gdx.app.log("debug", "click vao ne _ board_78!!");
             takeCardBtn.setOrigin(Align.center);
@@ -202,6 +208,7 @@ public class Board {
             @Override
             public void clicked(InputEvent event, float x, float y) {
             super.clicked(event, x, y);
+            SoundEffect.Play(SoundEffect.buttonFlipAll);
             flipAllCardsBtn.setTouchable(Touchable.disabled);
             Gdx.app.log("debug", "board_106 _ click ne");
             flipAllCardsBtn.setOrigin(Align.center);
@@ -268,6 +275,8 @@ public class Board {
         cardmove.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight- cfg.CH*Card.ratioScale)/2);
         cardmove.tileDown.setVisible(false);
         final boolean flag1_temp = flag1;
+
+        SoundEffect.Play(SoundEffect.takeCard);
         if(cards.get(0).size == 5 || flag || flag2) {
             if(flag2){
                 for(int i = 0; i < GGameStart.member - 1; i++) {
@@ -498,18 +507,11 @@ public class Board {
             cards.get(turnInitCards%GGameStart.member).add(card);
             cardmove.image.setOrigin(Align.center);
             cardmove.tileDown.setOrigin(Align.center);
+            SoundEffect.Play(SoundEffect.renderCards);
             cardmove.image.addAction(sequence(
                 parallel(
                     moveTo(cg.get(turnInitCards%GGameStart.member).getX(), cg.get(turnInitCards%GGameStart.member).getY(), 0.3f, Interpolation.fastSlow),
-                    rotateBy(-1*((int)Math.floor(Math.random()*81 + 100) + 10), 0.3f),
-                        GSimpleAction.simpleAction((d, a)->{
-                            tics+=1;
-                            if(tics == 17 ) {
-                                SoundEffect.Play(SoundEffect.renderCards);
-                                    tics = 0;
-                            }
-                            return true;
-                        })
+                    rotateBy(-1*((int)Math.floor(Math.random()*81 + 100) + 10), 0.3f)
                 ),
                 GSimpleAction.simpleAction((d, a)-> {
                     turnInitCards++;
@@ -556,6 +558,7 @@ public class Board {
            return;
         }
         if(turnAtTheMoment == GGameStart.member){
+            SoundEffect.Play(SoundEffect.playerTurn);
            playerTurn();
             return;
         }
@@ -674,6 +677,9 @@ public class Board {
         Card cardmove = new Card(gameMainAtlas, group, 0, 0);
         cardmove.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight - cfg.CH*Card.ratioScale)/2);
         tiles.removeIndex(0);
+        Tweens.setTimeout(group, 0.8f, ()->{
+            SoundEffect.Play(SoundEffect.takeCard);
+        });
         cardmove.image.addAction(sequence(
             delay(0.8f),
             Actions.parallel(
@@ -684,6 +690,7 @@ public class Board {
                     })
                     ),
             GSimpleAction.simpleAction((d, a)-> {
+
                 card.setVisible(true);
                 cardmove.removeCard();
                 cards.get(turnAtTheMoment).get(cards.get(turnAtTheMoment).size-1).image.setVisible(true);

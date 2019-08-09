@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.ss.core.action.exAction.GSimpleAction;
+import com.ss.core.effects.SoundEffect;
 import com.ss.core.util.GUI;
 
 public class Card extends Image {
@@ -39,6 +40,7 @@ public class Card extends Image {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
+                SoundEffect.Play(SoundEffect.flipACard);
                 flipCard(true);
             }
         });
