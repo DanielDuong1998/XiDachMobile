@@ -48,11 +48,7 @@ public class Card extends Image {
         tileDown.setTouchable(Touchable.disabled);
         tileDown.setOrigin(Align.center);
         image.setOrigin(Align.center);
-//        if(!isNotBot){
-//            tileDown.setVisible(false);
-//            return;
-//        }
-        float ratio = isNotBot ? 1 : 0.5f;
+        float ratio = isNotBot ? 1 : 1f;
 
         if(isFlip){
             image.setScale(0, ratio);
@@ -68,7 +64,7 @@ public class Card extends Image {
     }
 
     private void scaleImageCard(boolean isNotBot){
-        float ratio = isNotBot ? 1 : 0.5f;
+        float ratio = isNotBot ? 1 : 1f;
         image.addAction(Actions.scaleTo(ratio, ratio, 0.15f));
     }
 
@@ -78,8 +74,10 @@ public class Card extends Image {
     }
 
     public void setScale(float ratioScale){
-        image.setScale(ratioScale);
-        tileDown.setScale(ratioScale);
+        image.setWidth(image.getWidth()*ratioScale);
+        image.setHeight(image.getHeight()*ratioScale);
+        tileDown.setWidth(tileDown.getWidth()*ratioScale);
+        tileDown.setHeight(tileDown.getHeight()*ratioScale);
     }
 
     public void hiddenTileDown(){
@@ -95,6 +93,12 @@ public class Card extends Image {
     public void setVisible(boolean isVisible){
         tileDown.setVisible(isVisible);
         image.setVisible(isVisible);
+    }
+
+    public void dispose(){
+        image.remove();
+        tileDown.remove();
+        group.removeActor(group);
     }
 
 }

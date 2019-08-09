@@ -15,7 +15,9 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.ss.GMain;
 import com.ss.core.action.exAction.GSimpleAction;
+import com.ss.core.commons.Tweens;
 import com.ss.core.effects.EffectSlide;
+import com.ss.core.effects.SoundEffect;
 import com.ss.core.util.GUI;
 import com.ss.gameLogic.scene.GGameMainScene;
 import com.ss.gameLogic.scene.GGameStart;
@@ -25,13 +27,15 @@ public class Board {
     TextureAtlas gameMainAtlas;
     Group group;
     BoardConfig cfg;
+    GGameMainScene game;
     Image startGameBtn;
     Image takeCardBtn;
     Image flipAllCardsBtn;
+    Image newGameBtn;
     Array<Vector2> tiles;
     Array<Array<Card>> cards;
     Array<Array<Card>> cards_temp;
-    Array<Group> cardsGroup;
+    Array<Group> cg;
     Array<Vector2> positionCardGroup;
     Array<Vector2> resultFinal;
     int turnAtTheMoment = 1;
@@ -39,8 +43,11 @@ public class Board {
     boolean flagTurnLightOfTurn1 = true;
     EffectSlide slideButtonEffect;
     boolean[] idBotOverTurn;
+    static int count = 0;
+    int tics = 0;
 
-    public Board(TextureAtlas gameMainAtlas, Group group){
+    public Board(GGameMainScene game, TextureAtlas gameMainAtlas, Group group){
+        this.game = game;
         this.gameMainAtlas = gameMainAtlas;
         this.group = group;
         cfg = new BoardConfig();
@@ -50,19 +57,27 @@ public class Board {
         initResutl();
         addListenerFlipCardBtn();
         startGame();
+    }
 
+    private void replay(){
+        dispose();
+        game.replay();
     }
 
     private void startGame(){
         startGameBtn = GUI.createImage(this.gameMainAtlas, "startGame");
         takeCardBtn = GUI.createImage(this.gameMainAtlas, "takeCard");
         flipAllCardsBtn = GUI.createImage(this.gameMainAtlas, "flipAll");
+        newGameBtn = GUI.createImage(this.gameMainAtlas, "newGame");
         addlistenerButton();
         group.addActor(startGameBtn);
         group.addActor(takeCardBtn);
         group.addActor(flipAllCardsBtn);
-        flipAllCardsBtn.setPosition(850, GMain.screenHeight);
+        group.addActor(newGameBtn);
 
+        newGameBtn.setPosition(GMain.screenWidth/2, GMain.screenHeight/2, Align.center);
+        newGameBtn.setVisible(false);
+        flipAllCardsBtn.setPosition(850, GMain.screenHeight);
 
         takeCardBtn.setVisible(false);
         flipAllCardsBtn.setVisible(false);
@@ -75,7 +90,20 @@ public class Board {
             super.clicked(event, x, y);
             startGameBtn.setVisible(false);
             slideButtonEffect.disposeEcffect();
-            startRenderCards();
+
+            //am thanh
+            Tweens.setTimeout(group, 0.5f, ()->{
+                SoundEffect.Play(SoundEffect.renderCards);
+                startRenderCards();
+            });
+            }
+        });
+        newGameBtn.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                newGameBtn.setVisible(false);
+                replay();
             }
         });
     }
@@ -86,10 +114,12 @@ public class Board {
             GGameMainScene.flipCards.get(i).addListener(new ClickListener(){
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
-                    super.clicked(event, x, y);
-                    GGameMainScene.flipCards.get(itemp).setTouchable(Touchable.disabled);
-                    flipACards(itemp+1);
-                    return;
+                super.clicked(event, x, y);
+                count++;
+                idBotOverTurn[itemp] = true;
+                GGameMainScene.flipCards.get(itemp).setTouchable(Touchable.disabled);
+                flipACards(itemp+1);
+                return;
                 }
             });
         }
@@ -103,22 +133,42 @@ public class Board {
     }
 
     private void flipACards(int index){
-        Gdx.app.log("debug", "index: " + index);
         GGameMainScene.flipCards.get(index-1).setOrigin(Align.center);
+        int delta = checkCardsWidthPlayer(cards.get(index));
         GGameMainScene.flipCards.get(index-1).addAction(Actions.sequence(
-                Actions.sequence(
-                        scaleBy(-0.2f, -0.2f, 0.2f, Interpolation.circleIn),
-                        scaleBy(0.2f, 0.2f, 0.2f, Interpolation.circleOut)
-                ),
-                GSimpleAction.simpleAction((d, a)->{
-                    GGameMainScene.flipCards.get(index-1).setVisible(false);
-                    cardsGroup.get(index).setPosition(cardsGroup.get(index).getX() - cfg.CW*Card.ratioScale/2, cardsGroup.get(index).getY() - cfg.CH*Card.ratioScale/2);
-                    for(int i = 0; i < cards.get(index).size; i++){
-                         cards.get(index).get(i).flipCard(false);
-                    };
-                    return true;
-                }))
+            Actions.sequence(
+                    scaleBy(-0.2f, -0.2f, 0.2f, Interpolation.circleIn),
+                    scaleBy(0.2f, 0.2f, 0.2f, Interpolation.circleOut)
+            ),
+            GSimpleAction.simpleAction((d, a)->{
+                GGameMainScene.flipCards.get(index-1).setVisible(false);
+                for(int i = 0; i < cards.get(index).size; i++){
+                     cards.get(index).get(i).flipCard(false);
+                }
+                checkFlipCardBtn(index - 1);
+                return true;
+            }))
         );
+    }
+
+    private void checkFlipCardBtn(int index){
+        Gdx.app.log("debug", "count: " + count);
+        if(count == GGameStart.member - 1){
+            GGameMainScene.flipCards.get(index).addAction(
+                Actions.sequence(
+                    delay(0.5f),
+                    GSimpleAction.simpleAction((d1, a1)->{
+                        for(int i = 0; i < cards.get(0).size; i++ ){
+                            cards.get(0).get(i).flipCard(true);
+                        }
+                        takeCardBtn.setVisible(false);
+                        flipAllCardsBtn.setVisible(false);
+                        newGameBtn.setVisible(true);
+                        return true;
+                    })
+                )
+            );
+        }
     }
 
     private void startRenderCards(){
@@ -167,6 +217,7 @@ public class Board {
                     takeCardBtn.setVisible(false);
                     flipAllCardsBtn.setVisible(false);
                     flipAllCards();
+                    newGameBtn.setVisible(true);
                     return true;
                 }))
             );
@@ -175,9 +226,9 @@ public class Board {
     }
 
     private void flipAllCards(){
-        for(int index = 1; index < GGameStart.member; index++) {
-            cardsGroup.get(index).setPosition(cardsGroup.get(index).getX() - cfg.CW*Card.ratioScale/2, cardsGroup.get(index).getY() - cfg.CH*Card.ratioScale/2);
-        }
+//        for(int index = 1; index < GGameStart.member; index++) {
+//            cg.get(index).setPosition(cg.get(index).getX() - cfg.CW*Card.ratioScale/2, cg.get(index).getY() - cfg.CH*Card.ratioScale/2);
+//        }
         for(int index = 0; index < GGameStart.member; index++) {
             for(int i = 0; i < cards.get(index).size; i++){
                 if(index == 0)
@@ -188,14 +239,16 @@ public class Board {
     }
 
     private void getCardForPlayer(){
-        Card card = new Card(gameMainAtlas, cardsGroup.get(0), (int)tiles.get(0).x, (int)tiles.get(0).y);
+        Card card = new Card(gameMainAtlas, cg.get(0), (int)tiles.get(0).x, (int)tiles.get(0).y);
         cards.get(0).add(card);
         Vector2 result = checkPoint(cards.get(0));
-        boolean flag = false, flag1 = false;
+        boolean flag = false, flag1 = false, flag2 = false;
         if(!(result.x == 0 && (result.y == -1 || result.y == 21))) {
             takeCardBtn.setTouchable(Touchable.enabled);
             if(result.y != 0){
+                Gdx.app.log("debug", "come hiere!!!! board_197");
                 flag1 = true;
+                flag2 = true;
             }
         }
         else {
@@ -208,19 +261,29 @@ public class Board {
             else flag1 = true;
         }
         card.setPosition((cards.get(0).size - 1)*cfg.CW*2/3,0);
-        card.setScale(1);
+        card.setScale(2);
         card.setVisible(false);
-
 
         Card cardmove = new Card(gameMainAtlas, group, 0, 0);
         cardmove.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight- cfg.CH*Card.ratioScale)/2);
         cardmove.tileDown.setVisible(false);
         final boolean flag1_temp = flag1;
-        if(cards.get(0).size == 5 || flag) {
-            takeCardBtn.setTouchable(Touchable.disabled);
-            takeCardBtn.addAction(Actions.sequence(
-                delay(0.5f),
-                moveTo(takeCardBtn.getX(), GMain.screenHeight, 0.3f, Interpolation.fastSlow),
+        if(cards.get(0).size == 5 || flag || flag2) {
+            if(flag2){
+                for(int i = 0; i < GGameStart.member - 1; i++) {
+                    if(!idBotOverTurn[i]){
+                        GGameMainScene.flipCards.get(i).setVisible(true);
+                        GGameMainScene.flipCards.get(i).setTouchable(Touchable.enabled);
+                    }
+
+                }
+                moveFlipAllCards(flag1_temp);
+            }
+            else {
+                takeCardBtn.setTouchable(Touchable.disabled);
+                takeCardBtn.addAction(Actions.sequence(
+                    delay(0.5f),
+                    moveTo(takeCardBtn.getX(), GMain.screenHeight, 0.3f, Interpolation.elasticOut),
                     GSimpleAction.simpleAction((d, a)->{
                         for(int i = 0; i < GGameStart.member - 1; i++) {
                             if(!idBotOverTurn[i])
@@ -229,14 +292,15 @@ public class Board {
                         moveFlipAllCards(flag1_temp);
                         return true;
                     })
-            ));
+                ));
+            }
         }
 
         tiles.removeIndex(0);
         cardmove.image.addAction(sequence(
             Actions.parallel(
-                Actions.scaleTo(1, 1, 0.3f, Interpolation.fastSlow),
-                moveTo(cardsGroup.get(0).getX() + (cards.get(0).size - 1)*cfg.CW*2/3 - 20, cardsGroup.get(0).getY(), 0.3f, Interpolation.fastSlow),
+                Actions.scaleTo(2, 2, 0.3f, Interpolation.fastSlow),
+                moveTo(cg.get(0).getX() + (cards.get(0).size - 1)*cfg.CW*2/3 - 20, cg.get(0).getY(), 0.3f, Interpolation.fastSlow),
                 GSimpleAction.simpleAction((d, a)->{
                     moveGroupCards(0);
                     return true;
@@ -252,12 +316,31 @@ public class Board {
         ));
     }
 
-    private void moveFlipAllCards(boolean flag1){
-        flipAllCardsBtn.setVisible(flag1);
+    private void moveFlipAllCards(boolean isNotHidden){
+        if(!isNotHidden){
+            for(int index = 0; index < cards.size; index++) {
+                for(int i = 0; i < cards.get(index).size; i++){
+                    if(index == 0)
+                        cards.get(index).get(i).flipCard(true);
+                    else cards.get(index).get(i).flipCard(false);
+                }
+            }
+        }
+        for(int i = 0; i < GGameMainScene.flipCards.size; i++) {
+            if(isNotHidden){
+                if(!idBotOverTurn[i])
+                    GGameMainScene.flipCards.get(i).setVisible(isNotHidden);
+            }
+            else GGameMainScene.flipCards.get(i).setVisible(isNotHidden);
+        }
+
+        flipAllCardsBtn.setVisible(isNotHidden);
         flipAllCardsBtn.addAction(Actions.sequence(
-            moveTo(850, cardsGroup.get(0).getY(), 0.3f, Interpolation.fastSlow),
+            moveTo(850, cg.get(0).getY() + 50, 0.3f, Interpolation.fastSlow),
             GSimpleAction.simpleAction((d, a)->{
                 flipAllCardsBtn.setTouchable(Touchable.enabled);
+                if(!isNotHidden)
+                    newGameBtn.setVisible(true);
                 return true;
             })
         ));
@@ -272,8 +355,8 @@ public class Board {
             padding = 30;
             ratio = 3;
         }
-        cardsGroup.get(index).addAction(
-            moveTo(cardsGroup.get(index).getX()-1*cfg.CW*ratioScale*1/ratio+ padding, cardsGroup.get(index).getY(), 0.2f, Interpolation.linear)
+        cg.get(index).addAction(
+            moveTo(cg.get(index).getX()-1*cfg.CW*ratioScale*1/ratio+ padding, cg.get(index).getY(), 0.2f, Interpolation.linear)
         );
     }
 
@@ -339,20 +422,18 @@ public class Board {
             Gdx.app.log("debug_Board_143", "end Game roi ne, goi ham lat bai");
             cards.get(0).get(0).flipCard(true);
             cards.get(0).get(1).flipCard(true);
-            for(int index = 1; index  < GGameStart.member; index++) {
-                cardsGroup.get(index).setPosition(cardsGroup.get(index).getX() - cfg.CW*Card.ratioScale/2, cardsGroup.get(index).getY() - cfg.CH*Card.ratioScale/2);
-            }
             for(int i = 1; i < cards.size; i++) {
                 cards.get(i).get(0).flipCard(false);
                 cards.get(i).get(1).flipCard(false);
             }
+            newGameBtn.setVisible(true);
             return;
         }
         for(int i = 1; i < cards.size; i++) {
             resutl = checkPoint(cards.get(i));
             if(resutl.x == 0 && (resutl.y == 1 || resutl.y == 2)){
+                count++;
                 idBotOverTurn[i-1] = true;
-                cardsGroup.get(i).setPosition(cardsGroup.get(i).getX() - cfg.CW*Card.ratioScale/2, cardsGroup.get(i).getY() - cfg.CH*Card.ratioScale/2);
                 cards.get(i).get(0).flipCard(false);
                 cards.get(i).get(1).flipCard(false);
             }
@@ -394,7 +475,7 @@ public class Board {
             return;
         }
         else {
-            Card card = new Card(gameMainAtlas, cardsGroup.get(turnInitCards%GGameStart.member),(int)tiles.get(0).x, (int)tiles.get(0).y);
+            Card card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),(int)tiles.get(0).x, (int)tiles.get(0).y);
             Card cardmove = new Card(gameMainAtlas, group, 0, 0);
             cardmove.hiddenTileDown();
             cards_temp.get(turnInitCards%GGameStart.member).add(cardmove);
@@ -403,14 +484,12 @@ public class Board {
             card.setVisible(false);
 
             float ratioScale = Card.ratioScale;
-            int constValue = 1;
             float ratio_temp = 2;
             if(turnInitCards%GGameStart.member == 0){
-                card.setScale(1);
+                card.setScale(2);
                 card.addListenerClick();
-                cardmove.setScale(1);
+                cardmove.setScale(2);
                 ratioScale = 1;
-                constValue = 0;
                 ratio_temp = 3;
             }
             if(turnInitCards >= GGameStart.member) {
@@ -421,8 +500,16 @@ public class Board {
             cardmove.tileDown.setOrigin(Align.center);
             cardmove.image.addAction(sequence(
                 parallel(
-                    moveTo(cardsGroup.get(turnInitCards%GGameStart.member).getX() - cfg.CW/2*ratioScale*constValue, cardsGroup.get(turnInitCards%GGameStart.member).getY() - cfg.CH/2*ratioScale*constValue, 0.3f, Interpolation.fastSlow),
-                    rotateBy(-1*((int)Math.floor(Math.random()*81 + 180) + 10), 0.3f)
+                    moveTo(cg.get(turnInitCards%GGameStart.member).getX(), cg.get(turnInitCards%GGameStart.member).getY(), 0.3f, Interpolation.fastSlow),
+                    rotateBy(-1*((int)Math.floor(Math.random()*81 + 100) + 10), 0.3f),
+                        GSimpleAction.simpleAction((d, a)->{
+                            tics+=1;
+                            if(tics == 17 ) {
+                                SoundEffect.Play(SoundEffect.renderCards);
+                                    tics = 0;
+                            }
+                            return true;
+                        })
                 ),
                 GSimpleAction.simpleAction((d, a)-> {
                     turnInitCards++;
@@ -433,10 +520,9 @@ public class Board {
         }
     }
 
-
     private void renderPositionCard(){
         for(int index = 0; index < GGameStart.member; index++ ){
-            cardsGroup.get(index).setPosition(positionCardGroup.get(index).x,positionCardGroup.get(index).y);
+            cg.get(index).setPosition(positionCardGroup.get(index).x,positionCardGroup.get(index).y);
         }
     }
 
@@ -452,13 +538,14 @@ public class Board {
             moveFlipAllCards(true);
             for(int i = 0; i < GGameStart.member - 1; i++) {
                 GGameMainScene.flipCards.get(i).setVisible(true);
+                GGameMainScene.flipCards.get(i).setTouchable(Touchable.enabled);
             }
         }
         GGameMainScene.turnLight.setVisible(false);
-        takeCardBtn.setPosition(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 90, GMain.screenHeight);
+        takeCardBtn.setPosition(cg.get(0).getX() - takeCardBtn.getWidth() - 90, GMain.screenHeight);
         takeCardBtn.setVisible(true);
         takeCardBtn.addAction(Actions.sequence(
-            moveTo(cardsGroup.get(0).getX() - takeCardBtn.getWidth() - 90, cardsGroup.get(0).getY(), 0.3f, Interpolation.fastSlow)
+            moveTo(cg.get(0).getX() - takeCardBtn.getWidth() - 90, cg.get(0).getY() + 50, 0.3f, Interpolation.fastSlow)
         ));
     }
 
@@ -498,7 +585,7 @@ public class Board {
 
     private void fitPositionGroupCards(){
         if(cards.get(turnAtTheMoment).size > 2) {
-            cardsGroup.get(turnAtTheMoment).addAction(sequence(
+            cg.get(turnAtTheMoment).addAction(sequence(
                 moveBy(-1*((cards.get(turnAtTheMoment).size-2)*cfg.CW*Card.ratioScale)/2 + 20, 0, 0.3f),
                 GSimpleAction.simpleAction((d, a)-> {
                     turnAtTheMoment++;
@@ -526,7 +613,7 @@ public class Board {
             ));
         }
         else {
-            GGameMainScene.turnLight.setPosition(cardsGroup.get(turnAtTheMoment).getX() - 150, cardsGroup.get(turnAtTheMoment).getY() - 200);
+            GGameMainScene.turnLight.setPosition(cg.get(turnAtTheMoment).getX() - 150, cg.get(turnAtTheMoment).getY() - 200);
             GGameMainScene.turnLight.setScale(0.4f);
             GGameMainScene.turnLight.setOrigin(Align.center);
 
@@ -580,7 +667,7 @@ public class Board {
     }
 
     private void getCard(){
-        Card card = new Card(gameMainAtlas, cardsGroup.get(turnAtTheMoment), (int)tiles.get(0).x, (int)tiles.get(0).y);
+        Card card = new Card(gameMainAtlas, cg.get(turnAtTheMoment), (int)tiles.get(0).x, (int)tiles.get(0).y);
         card.setVisible(false);
         card.setPosition((cards.get(turnAtTheMoment).size)*cfg.CW*Card.ratioScale*1/2,0);
         cards.get(turnAtTheMoment).add(card);
@@ -590,7 +677,7 @@ public class Board {
         cardmove.image.addAction(sequence(
             delay(0.8f),
             Actions.parallel(
-                    moveTo(cardsGroup.get(turnAtTheMoment).getX() + (cards.get(turnAtTheMoment).size - 1)*cfg.CW*Card.ratioScale*1/2 - 15, cardsGroup.get(turnAtTheMoment).getY(), 0.3f, Interpolation.fastSlow),
+                    moveTo(cg.get(turnAtTheMoment).getX() + (cards.get(turnAtTheMoment).size - 1)*cfg.CW*Card.ratioScale*1/2 - 15, cg.get(turnAtTheMoment).getY(), 0.3f, Interpolation.fastSlow),
                     GSimpleAction.simpleAction((d, a)->{
                         moveGroupCards(turnAtTheMoment);
                         return true;
@@ -619,32 +706,34 @@ public class Board {
     }
 
     private void initCardsGroup(){
-        cardsGroup = new Array<Group>();
+        Gdx.app.log("debug", "inittttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt");
+        cg = new Array<Group>();
         for(int index = 0; index < GGameStart.member; index++){
             Group groupCard = new Group();
-            cardsGroup.add(groupCard);
-            group.addActor(cardsGroup.get(index));
+            cg.add(groupCard);
+            group.addActor(cg.get(index));
         }
+        Gdx.app.log("debug", "size group: " + cg.size);
     }
 
     private void initPositionCardGroup(){
         positionCardGroup = new Array<>();
         switch (GGameStart.member){
             case 2: {
-                Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH);
+                Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH - 55);
                 Vector2 position1 = new Vector2((GMain.screenWidth - cfg.CW*2*Card.ratioScale)/2, 105 + 10);
                 positionCardGroup.add(position0, position1);
                 break;
             }
             case 3: {
-                Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH);
+                Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH - 55);
                 Vector2 position1 = new Vector2(GMain.screenWidth - 250, 155 + 10);
                 Vector2 position2 = new Vector2( 150, 155 + 10);
                 positionCardGroup.add(position0, position1, position2);
                 break;
             }
             case 4: {
-                Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH);
+                Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH - 55);
                 Vector2 position1 = new Vector2(GMain.screenWidth - 150, GMain.screenHeight/2 + 5 + 10);
                 Vector2 position2 = new Vector2((GMain.screenWidth - cfg.CW*2*Card.ratioScale)/2, 105 + 10);
                 Vector2 position3 = new Vector2(100, GMain.screenHeight/2 + 5 + 10);
@@ -652,7 +741,7 @@ public class Board {
                 break;
             }
             case 5: {
-                Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH);
+                Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH - 55);
                 Vector2 position1 = new Vector2(GMain.screenWidth - 250, GMain.screenHeight - 245 + 10);
                 Vector2 position2 = new Vector2(GMain.screenWidth - 250, 155 + 10);
                 Vector2 position3 = new Vector2(150, 155 + 10);
@@ -662,7 +751,7 @@ public class Board {
                 break;
             }
             default: {
-                Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH);
+                Vector2 position0 = new Vector2((GMain.screenWidth - cfg.CW*2)/2, GMain.screenHeight - cfg.CH - 55);
                 Vector2 position1 = new Vector2(GMain.screenWidth - 250, GMain.screenHeight - 245 + 10);
                 Vector2 position2 = new Vector2(GMain.screenWidth - 250, 155 + 10);
                 Vector2 position3 = new Vector2((GMain.screenWidth - cfg.CW*2*Card.ratioScale)/2, 105 + 10);
@@ -685,30 +774,41 @@ public class Board {
                 result.set(0, 2); //todo: xì dách
             }
             else if(card.get(0).values[1] == 1 ){ //todo: lá thứ 0 là xì, lá thứ 1 ko phải xì
-                int dem = 0;
-                int valuesTemp = 0;
-                if(card.get(1).values[1] >= 10) valuesTemp = 10;
-                else valuesTemp = card.get(1).values[1];
-                dem = valuesTemp + 11;
-                if(dem < 16){
-                    result.set(0, 0);
+                int value = getValueCard(card.get(1));
+                int total = value + 1;
+                if(total < 16){
+                    if(total + 9 < 16) {
+                        if(total + 10 < 16){
+                            result.set(0, 0);
+                        }
+                        else if(total + 10 < 21)
+                            result.set(0, total + 10);
+                    }
+                    else if(total + 9 < 21) {
+                        result.set(0, total + 9);
+                    }
                 }
-                else result.set(0, dem);
+                else if(total < 21){
+                    result.set(0, total);
+                }
             }
             else if(card.get(1).values[1] == 1){ //Todo: lá thứ 0 ko phải là xì và lá thứ 1 là xì
-                int dem = 0;
-                int valuesTemp = 0;
-                if(card.get(0).values[1] >= 10) valuesTemp = 10;
-                else valuesTemp = card.get(0).values[1];
-                dem = valuesTemp + 11;
-                if(dem > 21) {
-                    dem = valuesTemp + 10;
-                    if(dem < 16) {
-                        result.set(0, 0);
+                int value = getValueCard(card.get(0));
+                int total = value + 1;
+                if(total < 16){
+                    if(total + 9 < 16) {
+                        if(total + 10 < 16)
+                            result.set(0, 0);
+                        else if(total + 10 < 21)
+                            result.set(0, total + 10);
                     }
-                    else result.set(0, dem);
+                    else if(total + 9 < 21) {
+                        result.set(0, total + 9);
+                    }
                 }
-                else result.set(0, dem);
+                else if(total < 21){
+                    result.set(0, total);
+                }
             }
             else { //Todo: 2 lá không phải là xì
                 int dem = 0;
@@ -801,5 +901,67 @@ public class Board {
         if(value >= 10)
             value = 10;
         return value;
+    }
+
+    private int checkCardsWidthPlayer(Array<Card> cardsBot){//todo: so sanh bai cua bot voi bai cua nguoi choi
+        int result = 0;
+        Vector2 result1 = checkPoint(cardsBot);
+        Vector2 result2 = checkPoint(cards.get(0));
+        if(result2.x == 0 && result2.y == 1){
+            if(result1.x == 0 && result1.y == 1){
+                result = 0; // todo: hoa
+            }
+            else result = 1; // todo: cai thang
+        }
+        else if(result2.x == 0 && result2.y == 2) {
+            if(result1.x == 0 && result1.y == 1)
+                result = -1; //todo: con thang
+            else if(result2.x == 0 && result2.y == 2)
+                result = 0;
+            else result = -1;
+        }
+        else if(result2.x == 1){
+            if(result1.x == 1) {
+                if(result1.y < result2.y)
+                    result = -1;
+                else result = 1;
+            }
+            else result = 1;
+        }
+        else if(result2.x == 0 && result2.y >= 16 && result2.y <= 21){
+            if((result1.x == 0 && (result1.y == 1 || result1.y == 2)) || result1.x == 1)
+                result = -1;
+            else if(result1.x == 0 && result1.y >= 16 && result1.y <= 21){
+                if(result1.y > result2.y)
+                    result = -1;
+                else if(result1.y == result2.y) result = 0;
+                else result = 1;
+            }
+            else if(result1.x == 0 && result1.y == -1) {
+                result = 1;
+            }
+        }
+        else if(result2.x == 0 && result2.y == -1){
+            if((result1.x == 0 && (result1.y == 1 || result1.y == 2 || result1.y >= 16)) || result1.x == 1 )
+                result = -1;
+            else result = 0;
+        }
+        else if(result2.x == 0 && result2.y == 0){
+            if(result1.x == 0 && result1.y <= 0)
+                result = 0;
+            else result = -1;
+        }
+        return result;
+    }
+
+    private void dispose(){
+        tiles.clear();
+        count = 0;
+        for(Group group : cg){
+            group.clearChildren();
+        }
+
+        positionCardGroup.clear();
+        resultFinal.clear();
     }
 }

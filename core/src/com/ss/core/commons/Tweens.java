@@ -2,6 +2,7 @@ package com.ss.core.commons;
 
 import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.actions.ParallelAction;
@@ -22,7 +23,7 @@ public class Tweens {
         target.addAction(seq);
     }
 
-    public static void setTimeout(Stage stage, float timeout, Runnable callback) {
+    public static void setTimeout(Group stage, float timeout, Runnable callback) {
         stage.addAction(Actions.sequence(
                 Actions.delay(timeout),
                 Actions.run(callback)
