@@ -6,7 +6,7 @@ import com.ss.core.util.GAssetsManager;
 
 
 public class SoundEffect {
-    public static int MAX_COMMON = 10;
+    public static int MAX_COMMON = 15;
     public static int renderCards = 0;
     public static int flipACard = 1;
     public static int takeCard = 2;
@@ -17,6 +17,13 @@ public class SoundEffect {
     public static int buttonNewGame = 7;
     public static int buttonFlipCards = 8;
     public static int flipCards = 9;
+    public static int flipAllCards = 10;
+    public static int rotateCards = 11;
+    public static int turnBots = 12;
+    public static int winSound = 13;
+    public static int loseSound = 14;
+
+
 
     public static boolean mute = false;
 
@@ -34,6 +41,11 @@ public class SoundEffect {
         commons[buttonNewGame] = GAssetsManager.getSound("buttonNewGame.mp3");
         commons[buttonFlipCards] = GAssetsManager.getSound("buttonFlipCards.mp3");
         commons[flipCards] = GAssetsManager.getSound("flipCards.mp3");
+        commons[flipAllCards] = GAssetsManager.getSound("flipAllCards.mp3");
+        commons[rotateCards] = GAssetsManager.getSound("rotateCards.mp3");
+        commons[turnBots] = GAssetsManager.getSound("turnBots.mp3");
+        commons[winSound] = GAssetsManager.getSound("winSound.mp3");
+        commons[loseSound] = GAssetsManager.getSound("loseSound.mp3");
     }
     public static void Play(int soundCode){
         if(!mute)
