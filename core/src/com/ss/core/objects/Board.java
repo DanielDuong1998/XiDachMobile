@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import static com.badlogic.gdx.math.Interpolation.*;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.*;
@@ -57,7 +58,13 @@ public class Board {
         initPositionCardGroup();
         initResutl();
         addListenerFlipCardBtn();
-        startGame();
+
+        if(GGameStart.mode == 0){ //todo: nguoi choi lam cai
+            startGame();
+        }
+        else {//todo: bot lam cai
+
+        }
     }
 
     private void replay(){
@@ -93,7 +100,11 @@ public class Board {
             SoundEffect.Play(SoundEffect.buttonStartGame);
             startGameBtn.setVisible(false);
             slideButtonEffect.disposeEcffect();
-            bet();
+
+            Tweens.setTimeout(group, 0.3f, ()->{
+                SoundEffect.Play(SoundEffect.chipPockers);
+                bet();
+            });
 
             //am thanh
             Tweens.setTimeout(group, 0.6f, ()->{
@@ -127,15 +138,23 @@ public class Board {
                 Gdx.app.log("debug", "so: " + temp);
                 if(temp == 1){
                     game.addMoneyPlayer(game.frameMoney.get(itemp+1).money);
-                    //game.bots.get(itemp).subMoney(game.frameMoney.get(itemp+1).money);
                     game.frameMoney.get(0).addMoney(game.frameMoney.get(itemp+1).money);
-                    game.groupPocker.get(itemp).addAction(moveTo(game.frameMoney.get(0).image.getX(),game.frameMoney.get(0).image.getY(), 0.4f, fastSlow ));
+                    Tweens.setTimeout(group, 0.5f, ()->{
+                        game.groupPocker.get(itemp).addAction(moveTo(game.frameMoney.get(0).image.getX(),game.frameMoney.get(0).image.getY(), 0.4f, fastSlow ));
+                    });
 
                 }
                 else if(temp == -1) {
                     game.subMoneyPlayer(game.frameMoney.get(itemp+1).money);
                     game.bots.get(itemp).addMoney(game.frameMoney.get(itemp+1).money*2);
                     game.frameMoney.get(0).subMoney(game.frameMoney.get(itemp+1).money);
+                    Tweens.setTimeout(group, 0.5f, ()->{
+                        game.groupPockerTemp.get(itemp).setVisible(true);
+                        game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
+                    });
+                }
+                else if(temp == 0){
+                    game.bots.get(itemp).addMoney(game.frameMoney.get(itemp+1).money);
                 }
                 flipACards(itemp+1);
                 return;
@@ -280,19 +299,31 @@ public class Board {
                 GSimpleAction.simpleAction((d, a)->{
                     for(int i = 0; i < GGameMainScene.flipCards.size; i++) {
                         GGameMainScene.flipCards.get(i).setVisible(false);
-                        Gdx.app.log("debug", "idBot: " + !idBotOverTurn[i]);
                         if(!idBotOverTurn[i]) {
                             int temp = checkCardsWidthPlayer(cards.get(i + 1));
                             if(temp == 1){
-                               // game.bots.get(i).subMoney(game.frameMoney.get(i+1).money);
                                 game.addMoneyPlayer(game.frameMoney.get(i + 1).money);
                                 game.frameMoney.get(0).addMoney(game.frameMoney.get(i+1).money);
-                                game.groupPocker.get(i).addAction(moveTo(game.frameMoney.get(0).image.getX(),game.frameMoney.get(0).image.getY(), 0.4f, fastSlow ));
+                                final int itemp = i;
+                                Tweens.setTimeout(group, 0.5f, ()->{
+                                    game.groupPocker.get(itemp).addAction(moveTo(game.frameMoney.get(0).image.getX(),game.frameMoney.get(0).image.getY(), 0.4f, fastSlow ));
+                                });
                             }
                             else if(temp == -1){
                                 game.bots.get(i).addMoney(game.frameMoney.get(i + 1).money*2);
-                                game.subMoneyPlayer(game.frameMoney.get(i + 1 ).money);
+                                game.subMoneyPlayer(game.frameMoney.get(i + 1).money);
                                 game.frameMoney.get(0).subMoney(game.frameMoney.get(i+1).money);
+
+                                final int itemp = i;
+                                Tweens.setTimeout(group, 0.5f, ()->{
+                                    game.groupPockerTemp.get(itemp).setVisible(true);
+                                    game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
+                                });
+
+                            }
+                            else if(temp == 0){
+                                game.bots.get(i).addMoney(game.frameMoney.get(i + 1).money);
+                                Gdx.app.log("debug", "vao roi ne:))");
                             }
                         }
                     }
@@ -350,6 +381,16 @@ public class Board {
                             game.bots.get(i-1).addMoney(game.frameMoney.get(i).money*2);
                             game.subMoneyPlayer(game.frameMoney.get(i).money);
                             game.frameMoney.get(0).subMoney(game.frameMoney.get(i).money);
+
+                            final int itemp = i - 1;
+                            Tweens.setTimeout(group, 0.5f, ()->{
+                                game.groupPockerTemp.get(itemp).setVisible(true);
+                                game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
+                            });
+
+                        }
+                        else {
+                            game.bots.get(i-1).addMoney(game.frameMoney.get(i).money);
                         }
                     }
                 }
@@ -546,14 +587,26 @@ public class Board {
                    // game.bots.get(i).subMoney(game.frameMoney.get(i+1).money);
                     game.addMoneyPlayer(game.frameMoney.get(i+1).money);
                     game.frameMoney.get(0).addMoney(game.frameMoney.get(i+1).money);
-                    game.groupPocker.get(i).addAction(moveTo(game.frameMoney.get(0).image.getX(),game.frameMoney.get(0).image.getY(), 0.4f, fastSlow ));
-                    Gdx.app.log("debug", "add: " + game.frameMoney.get(i+1).money);
+
+                    final int itemp = i;
+                    Tweens.setTimeout(group, 0.5f, ()->{
+                        game.groupPocker.get(itemp).addAction(moveTo(game.frameMoney.get(0).image.getX(),game.frameMoney.get(0).image.getY(), 0.4f, fastSlow ));
+                    });
                 }
                 else if(temp == -1){
                     game.bots.get(i).addMoney(game.frameMoney.get(i+1).money*2);
                     game.subMoneyPlayer(game.frameMoney.get(i+1).money);
                     game.frameMoney.get(0).subMoney(game.frameMoney.get(i+1).money);
-                    Gdx.app.log("debug", "sub: " + game.frameMoney.get(i+1).money);
+
+                    final int itemp = i;
+                    Tweens.setTimeout(group, 0.5f, ()->{
+                        game.groupPockerTemp.get(itemp).setVisible(true);
+                        game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
+                    });
+
+                }
+                else if(temp == 0){
+                    game.bots.get(i).addMoney(game.frameMoney.get(i+1).money);
                 }
             }
             int soundTemp = game.frameMoney.get(0).money > 0 ? SoundEffect.winSound : SoundEffect.loseSound;
@@ -566,6 +619,7 @@ public class Board {
             resutl = checkPoint(cards.get(i));
             if(resutl.x == 0 && (resutl.y == 1 || resutl.y == 2)){
                 count++;
+                SoundEffect.Play(SoundEffect.xiDachSound);
                 idBotOverTurn[i-1] = true;
                 showPointTxt(i);
                 cards.get(i).get(0).flipCard(false);
@@ -574,6 +628,14 @@ public class Board {
                 game.bots.get(i-1).addMoney(game.frameMoney.get(i).money*2);
                 game.subMoneyPlayer(game.frameMoney.get(i).money);
                 game.frameMoney.get(0).subMoney(game.frameMoney.get(i).money);
+
+                final int itemp = i - 1;
+                Tweens.setTimeout(group, 0.5f, ()->{
+                    game.groupPockerTemp.get(itemp).setVisible(true);
+                    game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
+                });
+
+
             }
         }
         play();
@@ -600,7 +662,6 @@ public class Board {
 
     private void initCards(){
         if(turnInitCards == GGameStart.member*2){
-            Gdx.app.log("debug", "out of turn");
             sortCardsAtTheStart();
             group.addAction(sequence(
                 delay(0.6f),
@@ -609,11 +670,17 @@ public class Board {
                     return true;
                 })
             ));
-            Gdx.app.log("debug", "here!!");
             return;
         }
         else {
-            Card card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),(int)tiles.get(0).x, (int)tiles.get(0).y);
+            Card card;
+            /*if(turnInitCards%6 == 0 && dem == 0){
+                card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),3, 12);
+                dem++;
+            } else if (turnInitCards % 6 == 0 && dem == 1) {
+                card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),2, 12);
+            }
+            else*/ card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),(int)tiles.get(0).x, (int)tiles.get(0).y);
             Card cardmove = new Card(gameMainAtlas, group, 0, 0);
             cardmove.hiddenTileDown();
             cards_temp.get(turnInitCards%GGameStart.member).add(cardmove);
@@ -658,7 +725,6 @@ public class Board {
     }
 
     private void playerTurn(){
-        Gdx.app.log("debug", "het luot");
         Vector2 result = checkPoint(cards.get(0));
         if(result.x == 0 && result.y == 21){
             flipCards();
@@ -695,23 +761,18 @@ public class Board {
         }
 
         Vector2 result = checkPoint(cards.get(turnAtTheMoment));
-        Gdx.app.log("debug", "point: x-y: " + result.x + "-" + result.y);
         if(result.x == 0 && result.y == 0){
-            Gdx.app.log("debug", "board_116: turn: " + turnAtTheMoment + " <16");
             getCard();
         }
         else if(result.x == 0 && result.y == -1){
-            Gdx.app.log("debug", "board_121: turn: " + turnAtTheMoment + " >21");
             resultFinal.get(turnAtTheMoment).set(result);
             fitPositionGroupCards();
         }
         else {
             if(isGetCard(percentGetCard(cards.get(turnAtTheMoment)))){
-                Gdx.app.log("debug", "board_128: turn: " + turnAtTheMoment + " 16<=x<=21 boc them");
                 getCard();
             }
             else {
-                Gdx.app.log("debug", "board_128: turn: " + turnAtTheMoment + " 16<=x<=21  ko boc them");
                 fitPositionGroupCards();
             }
         }
@@ -764,7 +825,6 @@ public class Board {
                 delay(1),
                 GSimpleAction.simpleAction((d, a)->{
                     GGameMainScene.turnLight.setVisible(false);
-                    Gdx.app.log("debug", "khong log");
                     play();
                     return true;
                 })
@@ -781,7 +841,6 @@ public class Board {
             group.addAction(Actions.sequence(
                 delay(1f),
                 GSimpleAction.simpleAction((d, a)->{
-                    Gdx.app.log("debug", "co log");
                     play();
                     return true;
                 })
@@ -790,7 +849,6 @@ public class Board {
     }
 
     private void flipCards(){
-        Gdx.app.log("debug_121", "flip cards");
         for(Card cardTemp : cards.get(turnAtTheMoment)){
             cardTemp.flipCard(false);
         }
@@ -868,14 +926,12 @@ public class Board {
     }
 
     private void initCardsGroup(){
-        Gdx.app.log("debug", "inittttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt");
         cg = new Array<Group>();
         for(int index = 0; index < GGameStart.member; index++){
             Group groupCard = new Group();
             cg.add(groupCard);
             group.addActor(cg.get(index));
         }
-        Gdx.app.log("debug", "size group: " + cg.size);
     }
 
     private void initPositionCardGroup(){
@@ -1067,7 +1123,6 @@ public class Board {
                 result = 0;
             else result = 1;
 
-            Gdx.app.log("debug", "vao xi dach" + " result: " + result);
 
         }
         else if(result2.x == 1){
@@ -1123,30 +1178,50 @@ public class Board {
         while(moneyPet > 0){
             if(moneyPet >= 500000) {
                 ratio = 500000;
+                Gdx.app.log("debug", "vao ratio: " + ratio);
+
             }
             else if(moneyPet >= 200000){
                 ratio = 200000;
+                Gdx.app.log("debug", "vao ratio: " + ratio);
+
             }
             else if(moneyPet >= 100000){
                 ratio = 100000;
+                Gdx.app.log("debug", "vao ratio: " + ratio);
+
             }
             else if(moneyPet >= 50000){
                 ratio = 50000;
+                Gdx.app.log("debug", "vao ratio: " + ratio);
+
             }
             else if(moneyPet >= 20000){
                 ratio = 20000;
+                Gdx.app.log("debug", "vao ratio: " + ratio);
+
             }
-            else ratio = 10000;
+            else {
+                ratio = 10000;
+                Gdx.app.log("debug", "vao ratio: " + ratio);
+
+            }
 
             long nguyen = moneyPet/ratio;
             long du = moneyPet%ratio;
 
             for(int i = 0; i < nguyen; i++) {
+                float x_temp = (float)Math.floor(Math.random() * 50);
+                float y_temp = (float)Math.floor(Math.random() * 40) - 50;
                 Pocker pocker = new Pocker(gameMainAtlas, game.groupPocker.get(index), ratio);
-                pocker.imagePocker.setPosition((float)Math.floor(Math.random() * 50), (float)Math.floor(Math.random() * 50) - 50);
-                game.groupPocker.get(index).addAction(
-                        moveTo(game.frameMoney.get(index+1).image.getX(),game.frameMoney.get(index+1).image.getY() + 20, 0.5f));
+                pocker.imagePocker.setPosition(x_temp, y_temp);
+
+                Pocker pocker1 = new Pocker(gameMainAtlas, game.groupPockerTemp.get(index), ratio);
+                pocker1.imagePocker.setPosition(x_temp, y_temp);
             }
+
+            game.groupPocker.get(index).addAction(moveTo(game.positionGroupPocker.get(index).x,game.positionGroupPocker.get(index).y, 0.5f));
+
             moneyPet = du;
             Gdx.app.log("debug", "money: " + moneyPet + " du: " + du + " ratio: " + ratio);
         }

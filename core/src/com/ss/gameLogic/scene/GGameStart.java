@@ -9,6 +9,7 @@ public class GGameStart extends GScreen {
     TextureAtlas gameStartAtlas;
     Group uiGroup;
     public static int member = 6;
+    public static int mode = 0;
 
     @Override
     public void dispose() {

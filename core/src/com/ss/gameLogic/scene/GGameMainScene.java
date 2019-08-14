@@ -1,9 +1,7 @@
 package com.ss.gameLogic.scene;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -11,7 +9,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.ss.GMain;
-import com.ss.core.action.exAction.GSimpleAction;
 import com.ss.core.effects.SoundEffect;
 import com.ss.core.objects.Board;
 import com.ss.core.objects.BoardConfig;
@@ -32,12 +29,14 @@ public class GGameMainScene extends GScreen {
     public static Array<Group> groupsBot;
     Array<Group> groupFrameMoney;
     public Array<Group> groupPocker;
+    public Array<Group> groupPockerTemp;
     public Array<Player> bots;
+    public Array<Array<Pocker>> pockersTemp;
     Board board;
     Array<Vector2> positionGroup;
     Array<Vector2> positionFrameMoney;
     Array<Vector2> positionFlipCards;
-    Array<Vector2> positionGroupPocker;
+    public Array<Vector2> positionGroupPocker;
     Array<Integer> idAvatar;
     int countIdAvatar = 0;
     public Array<FrameMoney> frameMoney;
@@ -96,8 +95,9 @@ public class GGameMainScene extends GScreen {
         flipCards.removeRange(0, flipCards.size-1);
         fontGroup.clearChildren();
         fontGroup.clear();
-        for(Group group : groupPocker){
-            group.clearChildren();
+        for(int i = 0; i < groupPocker.size; i++){
+            groupPocker.get(i).clearChildren();
+            groupPockerTemp.get(i).clearChildren();
         }
         //initGroupPockers();
         renderGroupPocker();
@@ -115,7 +115,7 @@ public class GGameMainScene extends GScreen {
         fontGroup = new Group();
         uiGroup.addActor(fontGroup);
         for(int index = 0; index < GGameStart.member; index++){
-            Label point = new Label("", new Label.LabelStyle(fontBitMap, null));
+            Label point = new Label("", new Label.LabelStyle(fontBitMap1, null));
             fontGroup.addActor(point);
             pointsTxt.add(point);
             point.setVisible(false);
@@ -124,7 +124,7 @@ public class GGameMainScene extends GScreen {
 
     private void initFont(){
         fontBitMap = GAssetsManager.getBitmapFont("font_money.fnt");
-        fontBitMap1 = GAssetsManager.getBitmapFont("font_lieng.fnt");
+        fontBitMap1 = GAssetsManager.getBitmapFont("font_white.fnt");
     }
 
 
@@ -247,12 +247,20 @@ public class GGameMainScene extends GScreen {
 
     private void initGroupPockers(){
         groupPocker = new Array<>();
+        groupPockerTemp = new Array<>();
+        pockersTemp = new Array<>();
         for(int i = 0; i < GGameStart.member - 1; i++) {
             Group group = new Group();
+            Group groupTemp = new Group();
+            Array<Pocker> pockers = new Array<>();
             groupPocker.add(group);
+            groupPockerTemp.add(groupTemp);
+            pockersTemp.add(pockers);
             uiGroup.addActor(group);
+            uiGroup.addActor(groupTemp);
+            groupTemp.setPosition(GMain.screenWidth/2, GMain.screenHeight);
+            groupTemp.setVisible(false);
         }
-
     }
 
     private void initFrameMoney(){
@@ -272,7 +280,10 @@ public class GGameMainScene extends GScreen {
     private void renderGroupPocker(){
         for(int index = 0; index < GGameStart.member - 1; index++){
             groupPocker.get(index).setPosition(positionGroup.get(index).x,positionGroup.get(index).y);
+            groupPockerTemp.get(index).setPosition(GMain.screenWidth/2, GMain.screenHeight);
+            groupPockerTemp.get(index).setVisible(false);
         }
+
     }
 
     private void renderFrameMoney(){
@@ -291,11 +302,12 @@ public class GGameMainScene extends GScreen {
     private void renderPointTxt(){
         for(int i = 0; i < GGameStart.member; i++) {
             if(i == 0) {
-                pointsTxt.get(i).setPosition(GMain.screenWidth/2 + 200, GMain.screenHeight - 100);
-                pointsTxt.get(i).setFontScale(2);
+                pointsTxt.get(i).setPosition(GMain.screenWidth/2 + 200, GMain.screenHeight - 50);
+                //pointsTxt.get(i).setFontScale(1);
             }
             else {
                 pointsTxt.get(i).setPosition(positionFlipCards.get(i-1).x + 5, positionFlipCards.get(i-1).y + 20);
+                pointsTxt.get(i).setFontScale(0.5f);
             }
         }
     }
@@ -304,6 +316,7 @@ public class GGameMainScene extends GScreen {
         positionGroup = new Array<>();
         positionFrameMoney = new Array<>();
         positionFlipCards = new Array<>();
+        positionGroupPocker = new Array<>();
         switch (GGameStart.member){
             case 2: {
                 Vector2 position = new Vector2(GMain.screenWidth/2, 100);
@@ -316,6 +329,8 @@ public class GGameMainScene extends GScreen {
                 Vector2 positionF = new Vector2(GMain.screenWidth/2 - 225, 60);
                 positionFlipCards.add(positionF);
 
+                Vector2 positionP1 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 280);
+                positionGroupPocker.add(positionP1);
                 break;
             }
             case 3: {
@@ -324,13 +339,17 @@ public class GGameMainScene extends GScreen {
                 positionGroup.add(position0, position1);
 
                 Vector2 positionM0 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, GMain.screenHeight - 220 - 60);
-                Vector2 positionM1 = new Vector2(GMain.screenWidth - 420 - 50, 170);
+                Vector2 positionM1 = new Vector2(GMain.screenWidth - 420 - 40, 170);
                 Vector2 positionM2 = new Vector2(360, 170);
                 positionFrameMoney.add(positionM0, positionM1, positionM2);
 
                 Vector2 positionF0 = new Vector2(GMain.screenWidth - 250, 250);
                 Vector2 positionF1 = new Vector2(120, 250);
                 positionFlipCards.add(positionF0, positionF1);
+
+                Vector2 positionP1 = new Vector2(GMain.screenWidth - 420 - 50, 280);
+                Vector2 positionP2 = new Vector2(360, 280);
+                positionGroupPocker.add(positionP1, positionP2);
                 break;
             }
             case 4: {
@@ -349,6 +368,11 @@ public class GGameMainScene extends GScreen {
                 Vector2 positionF1 = new Vector2(GMain.screenWidth/2 - 225, 60);
                 Vector2 positionF2 = new Vector2(100, GMain.screenHeight/2  + 100);
                 positionFlipCards.add(positionF0, positionF1, positionF2);
+
+                Vector2 positionP1 = new Vector2(GMain.screenWidth-400, GMain.screenHeight/2 - 70);
+                Vector2 positionP2 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 200 + 70);
+                Vector2 positionP3 = new Vector2(290, GMain.screenHeight/2 - 70);
+                positionGroupPocker.add(positionP1, positionP2, positionP3);
                 break;
             }
             case 5: {
@@ -372,6 +396,14 @@ public class GGameMainScene extends GScreen {
                 Vector2 positionF2 = new Vector2(120, 250);
                 Vector2 positionF3 = new Vector2(120, GMain.screenHeight - 150);
                 positionFlipCards.add(positionF0, positionF1, positionF2, positionF3);
+
+
+                Vector2 positionP1 = new Vector2(GMain.screenWidth - 420 - 50, GMain.screenHeight - 310);
+                Vector2 positionP2 = new Vector2(GMain.screenWidth - 420 - 50, 280);
+                Vector2 positionP3 = new Vector2(340, 280);
+                Vector2 positionP4 = new Vector2(340, GMain.screenHeight - 310);
+                positionGroupPocker.add(positionP1, positionP2, positionP3);
+                positionGroupPocker.add(positionP4);
                 break;
             }
             default: {
@@ -399,6 +431,14 @@ public class GGameMainScene extends GScreen {
                 Vector2 positionF4 = new Vector2(120, GMain.screenHeight - 150);
                 positionFlipCards.add(positionF0, positionF1, positionF2, positionF3);
                 positionFlipCards.add(positionF4);
+
+                Vector2 positionP1 = new Vector2(GMain.screenWidth - 420 - 50, GMain.screenHeight - 310);
+                Vector2 positionP2 = new Vector2(GMain.screenWidth - 420 - 50, 280);
+                Vector2 positionP3 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 280);
+                Vector2 positionP4 = new Vector2(340, 280);
+                Vector2 positionP5 = new Vector2(340, GMain.screenHeight - 310);
+                positionGroupPocker.add(positionP1, positionP2, positionP3);
+                positionGroupPocker.add(positionP4, positionP5);
                 break;
             }
         }
