@@ -235,6 +235,7 @@ public class Board {
                     game.groupsBot.get(i).addAction(Actions.sequence(
                         moveBy(1000, 0, 0.5f, fastSlow),
                         GSimpleAction.simpleAction((d, a)->{
+                            Gdx.app.log("debug", "hẻhehe");
                             game.newBots(itemp);
                             moveBots(itemp);
                             return true;
@@ -674,13 +675,13 @@ public class Board {
         }
         else {
             Card card;
-            /*if(turnInitCards%6 == 0 && dem == 0){
+            if(turnInitCards%6 == 0 && dem == 0){
                 card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),3, 12);
                 dem++;
             } else if (turnInitCards % 6 == 0 && dem == 1) {
                 card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),2, 12);
             }
-            else*/ card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),(int)tiles.get(0).x, (int)tiles.get(0).y);
+            else card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),(int)tiles.get(0).x, (int)tiles.get(0).y);
             Card cardmove = new Card(gameMainAtlas, group, 0, 0);
             cardmove.hiddenTileDown();
             cards_temp.get(turnInitCards%GGameStart.member).add(cardmove);
@@ -1163,7 +1164,8 @@ public class Board {
     private void bet(){
         for(int i = 0; i < GGameStart.member - 1; i++) {
             int percent = (int) Math.floor(Math.random()*30 + 10);
-            long moneyPet = (percent*game.bots.get(i).money)/100;
+            //long moneyPet = (percent*game.bots.get(i).money)/100;
+            long moneyPet = 2000000;
             if(moneyPet < 1000000){
                 moneyPet = (moneyPet /10000)*10000;
             }
@@ -1178,32 +1180,32 @@ public class Board {
         while(moneyPet > 0){
             if(moneyPet >= 500000) {
                 ratio = 500000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
+                //Gdx.app.log("debug", "vao ratio: " + ratio);
 
             }
             else if(moneyPet >= 200000){
                 ratio = 200000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
+                //Gdx.app.log("debug", "vao ratio: " + ratio);
 
             }
             else if(moneyPet >= 100000){
                 ratio = 100000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
+                //Gdx.app.log("debug", "vao ratio: " + ratio);
 
             }
             else if(moneyPet >= 50000){
                 ratio = 50000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
+                //Gdx.app.log("debug", "vao ratio: " + ratio);
 
             }
             else if(moneyPet >= 20000){
                 ratio = 20000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
+                //Gdx.app.log("debug", "vao ratio: " + ratio);
 
             }
             else {
                 ratio = 10000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
+                //Gdx.app.log("debug", "vao ratio: " + ratio);
 
             }
 
@@ -1223,7 +1225,7 @@ public class Board {
             game.groupPocker.get(index).addAction(moveTo(game.positionGroupPocker.get(index).x,game.positionGroupPocker.get(index).y, 0.5f));
 
             moneyPet = du;
-            Gdx.app.log("debug", "money: " + moneyPet + " du: " + du + " ratio: " + ratio);
+            //Gdx.app.log("debug", "money: " + moneyPet + " du: " + du + " ratio: " + ratio);
         }
 
     }

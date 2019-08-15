@@ -490,7 +490,7 @@ public class GGameMainScene extends GScreen {
 
     public void newBots(int index){
         bots.get(index).newBots(countIdAvatar, countNameId, moneyPlayer*2);
-        countNameId++;
+        countIdAvatar++;
         countNameId++;
     }
 }
