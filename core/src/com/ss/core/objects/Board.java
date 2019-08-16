@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import static com.badlogic.gdx.math.Interpolation.*;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.*;
@@ -16,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.ss.GMain;
+import com.ss.core.action.exAction.GShakeAction;
 import com.ss.core.action.exAction.GSimpleAction;
 import com.ss.core.commons.Tweens;
 import com.ss.core.effects.EffectSlide;
@@ -46,7 +46,23 @@ public class Board {
     EffectSlide slideButtonEffect;
     boolean[] idBotOverTurn;
     static int count = 0;
+    int dem1 = 0;
+
+    //TEST
     int dem = 0;
+
+    //bOT LAM CAI
+    int idBoss = 0;
+    Image imageBoss;
+    Array<Image> chipPocker;
+    Group groupPocker;
+    Array<Pocker> pockersPlayer;
+    Array<Pocker> pockersBetPlayer;
+    Array<String> nameChips;
+    Image doneBtn;
+    Image blockCardBtn;
+    boolean isClickedChip = false;
+    boolean isPassTurnPlayer = false;
 
     public Board(GGameMainScene game, TextureAtlas gameMainAtlas, Group group){
         this.game = game;
@@ -60,10 +76,10 @@ public class Board {
         addListenerFlipCardBtn();
 
         if(GGameStart.mode == 0){ //todo: nguoi choi lam cai
-            startGame();
+            startGame0();
         }
         else {//todo: bot lam cai
-
+            startGame1();
         }
     }
 
@@ -72,7 +88,7 @@ public class Board {
         game.replay();
     }
 
-    private void startGame(){
+    private void startGame0(){
         startGameBtn = GUI.createImage(this.gameMainAtlas, "startGame");
         takeCardBtn = GUI.createImage(this.gameMainAtlas, "takeCard");
         flipAllCardsBtn = GUI.createImage(this.gameMainAtlas, "flipAll");
@@ -112,6 +128,7 @@ public class Board {
             });
             }
         });
+
         newGameBtn.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -121,6 +138,187 @@ public class Board {
                 replay();
             }
         });
+    }
+
+    private void startGame1(){
+        findBoss();
+        initChipPocker();
+    }
+
+    private void addListenerBtnMode1(){
+        takeCardBtn.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                takeCardBtn.setTouchable(Touchable.disabled);
+                SoundEffect.Play(SoundEffect.button);
+                takeCardBtn.setTouchable(Touchable.disabled);
+                takeCardBtn.setOrigin(Align.center);
+                takeCardBtn.setScale(0.8f);
+                Tweens.setTimeout(group,0.05f,()->{
+                    takeCardBtn.addAction(Actions.scaleTo(1,1,0.05f,linear));
+                    takeCardBtn.setTouchable(Touchable.enabled);
+                    getCardForPlayer();
+                });
+            }
+        });
+
+        blockCardBtn.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                SoundEffect.Play(SoundEffect.buttonFlipAll);
+                blockCardBtn.setTouchable(Touchable.disabled);
+                takeCardBtn.setTouchable(Touchable.disabled);
+                blockCardBtn.setOrigin(Align.center);
+                blockCardBtn.setScale(0.8f);
+                blockCardBtn.addAction(sequence(
+                    scaleTo(1, 1, 0.05f, linear),
+                    delay(0.2f),
+                    moveTo(blockCardBtn.getX(), blockCardBtn.getY() + 200, 0.3f, linear),
+                    GSimpleAction.simpleAction((d, a)->{
+                        moveBtn();
+                        return true;
+                    })
+
+                ));
+            }
+        });
+    }
+
+    private void moveBtn(){
+        takeCardBtn.addAction(sequence(
+            moveTo(takeCardBtn.getX(), GMain.screenHeight, 0.3f, linear),
+            GSimpleAction.simpleAction((d, a)->{
+                blockBtnClicked();
+                return true;
+            })
+        ));
+    }
+
+    private void blockBtnClicked(){
+        turnAtTheMoment++;
+        turnAtTheMoment = turnAtTheMoment%GGameStart.member;
+        Gdx.app.log("debug", "turn: 200: " + turnAtTheMoment);
+        isPassTurnPlayer = true;
+        play();
+        return;
+    }
+
+    private void initChipPocker(){
+        chipPocker = new Array<>();
+        nameChips  = new Array<>();
+        pockersPlayer = new Array<>();
+        groupPocker = new Group();
+        group.addActor(groupPocker);
+        doneBtn = GUI.createImage(gameMainAtlas, "done");
+        blockCardBtn = GUI.createImage(gameMainAtlas, "blockCard");
+        groupPocker.addActor(doneBtn);
+        group.addActor(blockCardBtn);
+        blockCardBtn.setPosition(850, GMain.screenHeight);
+        doneBtn.setSize(doneBtn.getWidth()*1.3f, doneBtn.getHeight()*1.3f);
+        doneBtn.setPosition(600, -250);
+
+        Pocker pocker0 = new Pocker(gameMainAtlas, groupPocker, 10000);
+        Pocker pocker1 = new Pocker(gameMainAtlas, groupPocker, 20000);
+        Pocker pocker2 = new Pocker(gameMainAtlas, groupPocker, 50000);
+        Pocker pocker3 = new Pocker(gameMainAtlas, groupPocker, 100000);
+        Pocker pocker4 = new Pocker(gameMainAtlas, groupPocker, 200000);
+        Pocker pocker5 = new Pocker(gameMainAtlas, groupPocker, 500000);
+        pockersPlayer.add(pocker0, pocker1, pocker2, pocker3);
+        pockersPlayer.add(pocker4, pocker5);
+
+        doneBtn.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                if(!isClickedChip){
+                    //doneBtn.addAction();
+                    return;
+                }
+                doneBtn.setOrigin(Align.center);
+                doneBtn.setTouchable(Touchable.disabled);
+                doneBtn.addAction(sequence(
+                    scaleBy(-0.5f, -0.5f, 0.1f),
+                    scaleBy(0.5f, 0.5f, 0.1f),
+                        delay(0.1f),
+                        GSimpleAction.simpleAction((d, a)->{
+                        doneBtn.setTouchable(Touchable.enabled);
+                        hiddenGroupPocker();
+                        return true;
+                    })
+                ));
+            }
+        });
+
+        for(int i = 0; i < 6; i++) {
+            pockersPlayer.get(i).imagePocker.setSize(pockersPlayer.get(i).imagePocker.getWidth()*4.3f,pockersPlayer.get(i).imagePocker.getHeight()*4.3f );
+            if(i != 0){
+                pockersPlayer.get(i).imagePocker.setPosition((pockersPlayer.get(0).imagePocker.getWidth()-10)*i, 0);
+            }
+            final int itemp = i;
+            pockersPlayer.get(i).imagePocker.addListener(new ClickListener(){
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    super.clicked(event, x, y);
+                    isClickedChip = true;
+                    pockersPlayer.get(itemp).imagePocker.setTouchable(Touchable.disabled);
+                    if(GGameMainScene.moneyPlayer < pockersPlayer.get(itemp).value){
+                        pockersPlayer.get(itemp).imagePocker.addAction(GShakeAction.shakeAction(0.3f, 5f, linear));
+                        pockersPlayer.get(itemp).imagePocker.setTouchable(Touchable.enabled);
+                        SoundEffect.Play(SoundEffect.shake);
+                        return;
+                    }
+                    SoundEffect.Play(SoundEffect.tick);
+                    pockersPlayer.get(itemp).imagePocker.setOrigin(Align.center);
+                    pockersPlayer.get(itemp).imagePocker.addAction(sequence(
+                        scaleBy(-0.5f, -0.5f, 0.1f),
+                        scaleBy(0.5f, 0.5f, 0.1f),
+                        GSimpleAction.simpleAction((d, a)->{
+                            chipClick(itemp);
+                            return true;
+                        })
+                    ));
+                }
+            });
+        }
+        groupPocker.setPosition((GMain.screenWidth-(pockersPlayer.get(0).imagePocker.getWidth()-10)*6)/2,GMain.screenHeight - pockersPlayer.get(0).imagePocker.getHeight() - 70, Align.center);
+    }
+
+    private void hiddenGroupPocker(){
+        groupPocker.addAction(sequence(
+            moveBy(0, 500, 0.5f, fastSlow),
+            GSimpleAction.simpleAction((d, a)->{
+                Gdx.app.log("debug", "done");
+                groupPocker.clearChildren();
+                bet();
+                return true;
+            })
+        ));
+    }
+
+    private void findBoss(){
+        idBoss = (int) Math.floor(Math.random()*(GGameStart.member-1));
+        //idBoss = 4;
+        imageBoss = GUI.createImage(gameMainAtlas, "boss");
+        GGameMainScene.groupsBot.get(idBoss).addActor(imageBoss);
+        imageBoss.setPosition(imageBoss.getX(), imageBoss.getY() - 25);
+        pockersBetPlayer = new Array<>();
+    }
+
+    private void chipClick(int index){
+        Pocker pocker = new Pocker(gameMainAtlas, group, pockersPlayer.get(index).value);
+        pockersBetPlayer.add(pocker);
+        pocker.imagePocker.setPosition(groupPocker.getX() + pockersPlayer.get(0).imagePocker.getWidth()*index, groupPocker.getY() + 20);
+        game.subMoneyPlayer(pockersPlayer.get(index).value);
+        game.frameMoney.get(0).addMoney(pockersPlayer.get(index).value);
+        pocker.imagePocker.addAction(sequence(
+            moveTo(game.frameMoney.get(0).image.getX() + (float)Math.floor(Math.random()*70),game.frameMoney.get(0).image.getY() - 30 - (float)Math.floor(Math.random()*30), 0.2f, fastSlow),
+            GSimpleAction.simpleAction((d, a)->{
+                pockersPlayer.get(index).imagePocker.setTouchable(Touchable.enabled);
+                return true;
+            })
+        ));
     }
 
     private void addListenerFlipCardBtn() {
@@ -270,7 +468,7 @@ public class Board {
             SoundEffect.Play(SoundEffect.button);
             takeCardBtn.setTouchable(Touchable.disabled);
             takeCardBtn.setOrigin(Align.center);
-                takeCardBtn.setScale(0.8f);
+            takeCardBtn.setScale(0.8f);
             Tweens.setTimeout(group,0.05f,()->{
                 takeCardBtn.addAction(Actions.scaleTo(1,1,0.05f,Interpolation.linear));
                 takeCardBtn.setTouchable(Touchable.enabled);
@@ -373,29 +571,32 @@ public class Board {
         else {
             flag = true;
             if(result.y == -1){
-                //flipAllCardsBtn.setVisible(false);
-                //goi ham chung tien::::!!!!
-                for(int i = 1; i < GGameStart.member; i++) {
-                    if(!idBotOverTurn[i-1]){
-                        Vector2 vt = checkPoint(cards.get(i));
-                        if(vt.y != -1){
-                            game.bots.get(i-1).addMoney(game.frameMoney.get(i).money*2);
-                            game.subMoneyPlayer(game.frameMoney.get(i).money);
-                            game.frameMoney.get(0).subMoney(game.frameMoney.get(i).money);
+                if(GGameStart.mode == 0){
+                    for(int i = 1; i < GGameStart.member; i++) {
+                        if(!idBotOverTurn[i-1]){
+                            Vector2 vt = checkPoint(cards.get(i));
+                            if(vt.y != -1){
+                                game.bots.get(i-1).addMoney(game.frameMoney.get(i).money*2);
+                                game.subMoneyPlayer(game.frameMoney.get(i).money);
+                                game.frameMoney.get(0).subMoney(game.frameMoney.get(i).money);
 
-                            final int itemp = i - 1;
-                            Tweens.setTimeout(group, 0.5f, ()->{
-                                game.groupPockerTemp.get(itemp).setVisible(true);
-                                game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
-                            });
+                                final int itemp = i - 1;
+                                Tweens.setTimeout(group, 0.5f, ()->{
+                                    game.groupPockerTemp.get(itemp).setVisible(true);
+                                    game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
+                                });
 
-                        }
-                        else {
-                            game.bots.get(i-1).addMoney(game.frameMoney.get(i).money);
+                            }
+                            else {
+                                game.bots.get(i-1).addMoney(game.frameMoney.get(i).money);
+                            }
                         }
                     }
+                    flag1 = false;
                 }
-                flag1 = false;
+                else{
+                    //todo:
+                }
             }
             else flag1 = true;
         }
@@ -409,36 +610,56 @@ public class Board {
         final boolean flag1_temp = flag1;
         SoundEffect.Play(SoundEffect.takeCard);
         if(cards.get(0).size == 5 || flag || flag2) {
-            if(flag2){
-                for(int i = 0; i < GGameStart.member - 1; i++) {
-                    if(!idBotOverTurn[i]){
-                        GGameMainScene.flipCards.get(i).setVisible(true);
-                        GGameMainScene.flipCards.get(i).setTouchable(Touchable.enabled);
-                    }
+            if(flag2){//todo: bai du diem
+                if(GGameStart.mode == 0){
+                    for(int i = 0; i < GGameStart.member - 1; i++) {
+                        if(!idBotOverTurn[i]){
+                            GGameMainScene.flipCards.get(i).setVisible(true);
+                            GGameMainScene.flipCards.get(i).setTouchable(Touchable.enabled);
+                        }
 
+                    }
                 }
                 moveFlipAllCards(flag1_temp);
             }
             else {
                 takeCardBtn.setTouchable(Touchable.disabled);
-                takeCardBtn.addAction(Actions.sequence(
-                    delay(0.5f),
-                    moveTo(takeCardBtn.getX(), GMain.screenHeight, 0.3f, Interpolation.elasticOut),
-                    GSimpleAction.simpleAction((d, a)->{
-                        for(int i = 0; i < GGameStart.member - 1; i++) {
-                            if(!idBotOverTurn[i])
-                                GGameMainScene.flipCards.get(i).setVisible(true);
-                        }
-                        int soundTemp = game.frameMoney.get(0).money > 0 ? SoundEffect.winSound : SoundEffect.loseSound;
-                        Tweens.setTimeout(group, 0.5f,()->{
-                            SoundEffect.Play(soundTemp);
-                        });
-                        moveFlipAllCards(flag1_temp);
-                        return true;
-                    })
-                ));
+                if(GGameStart.mode == 0){ //todo: bai bi quat va 21 diem
+                    takeCardBtn.addAction(Actions.sequence(
+                        delay(0.5f),
+                        moveTo(takeCardBtn.getX(), GMain.screenHeight, 0.3f, Interpolation.elasticOut),
+                        GSimpleAction.simpleAction((d, a)->{
+                            for(int i = 0; i < GGameStart.member - 1; i++) {
+                                if(!idBotOverTurn[i])
+                                    GGameMainScene.flipCards.get(i).setVisible(true);
+                            }
+                            int soundTemp = game.frameMoney.get(0).money > 0 ? SoundEffect.winSound : SoundEffect.loseSound;
+                            Tweens.setTimeout(group, 0.5f,()->{
+                                SoundEffect.Play(soundTemp);
+                            });
+                            moveFlipAllCards(flag1_temp);
+                            return true;
+                        })
+                    ));
+                }
+                else {
+                    takeCardBtn.addAction(sequence(
+                        delay(0.5f),
+                        parallel(
+                            moveTo(takeCardBtn.getX(), GMain.screenHeight, 0.3f, fastSlow),
+                            GSimpleAction.simpleAction((d, a)->{
+                                blockCardBtn.addAction(sequence(
+                                    moveTo(blockCardBtn.getX(), cg.get(0).getY() + 50, 0.3f),
+                                    GSimpleAction.simpleAction((d1, a1)->{
+                                        return true;
+                                    })
+                                ));
+                                return true;
+                            })
+                        )
+                    ));
+                }
             }
-
         }
 
         tiles.removeIndex(0);
@@ -462,37 +683,56 @@ public class Board {
 
     private void moveFlipAllCards(boolean isNotHidden){
         if(!isNotHidden){
-            SoundEffect.Play(SoundEffect.flipAllCards);
-            for(int index = 0; index < cards.size; index++) {
-                showPointTxt(index);
-                for(int i = 0; i < cards.get(index).size; i++){
-                    if(index == 0)
-                        cards.get(index).get(i).flipCard(true);
-                    else cards.get(index).get(i).flipCard(false);
+            if(GGameStart.mode == 0){
+                SoundEffect.Play(SoundEffect.flipAllCards);
+                for(int index = 0; index < cards.size; index++) {
+                    showPointTxt(index);
+                    for(int i = 0; i < cards.get(index).size; i++){
+                        if(index == 0)
+                            cards.get(index).get(i).flipCard(true);
+                        else cards.get(index).get(i).flipCard(false);
+                    }
                 }
             }
-        }
-        for(int i = 0; i < GGameMainScene.flipCards.size; i++) {
-            if(isNotHidden){
-                if(!idBotOverTurn[i])
-                    GGameMainScene.flipCards.get(i).setVisible(isNotHidden);
+           else {
+
             }
-            else GGameMainScene.flipCards.get(i).setVisible(isNotHidden);
         }
 
-        flipAllCardsBtn.setVisible(isNotHidden);
-        flipAllCardsBtn.addAction(Actions.sequence(
-            moveTo(850, cg.get(0).getY() + 50, 0.3f, fastSlow),
-            GSimpleAction.simpleAction((d, a)->{
-                flipAllCardsBtn.setTouchable(Touchable.enabled);
-                if(!isNotHidden) {
-                    //check tien bot va player
-                    checkMoneyBotPlayer();
-                    newGameBtn.setVisible(true);
+        if(GGameStart.mode == 0){
+            for(int i = 0; i < GGameMainScene.flipCards.size; i++) {
+                if(isNotHidden){
+                    if(!idBotOverTurn[i])
+                        GGameMainScene.flipCards.get(i).setVisible(isNotHidden);
                 }
-                return true;
-            })
-        ));
+                else GGameMainScene.flipCards.get(i).setVisible(isNotHidden);
+            }
+        }
+
+        if(GGameStart.mode == 0){
+            flipAllCardsBtn.setVisible(isNotHidden);
+            flipAllCardsBtn.addAction(Actions.sequence(
+                moveTo(850, cg.get(0).getY() + 50, 0.3f, fastSlow),
+                GSimpleAction.simpleAction((d, a)->{
+                    flipAllCardsBtn.setTouchable(Touchable.enabled);
+                    if(!isNotHidden) {
+                        //check tien bot va player
+                        checkMoneyBotPlayer();
+                        newGameBtn.setVisible(true);
+                    }
+                    return true;
+                })
+            ));
+        }
+        else {
+            blockCardBtn.setVisible(true);
+            blockCardBtn.addAction(sequence(
+                moveTo(850, cg.get(0).getY() + 50, 0.3f, fastSlow),
+                GSimpleAction.simpleAction((d, a)->{
+                    return true;
+                })
+            ));
+        }
     }
 
     private void moveGroupCards(int index){
@@ -501,11 +741,11 @@ public class Board {
         float ratio = 2;
         if(index == 0){
             ratioScale = 1;
-            padding = 30;
+            padding = 35;
             ratio = 3;
         }
         cg.get(index).addAction(
-            moveTo(cg.get(index).getX()-1*cfg.CW*ratioScale*1/ratio+ padding, cg.get(index).getY(), 0.2f, Interpolation.linear)
+            moveTo(cg.get(index).getX()-1*cfg.CW*ratioScale*1/ratio+ padding, cg.get(index).getY(), 0.1f, Interpolation.linear)
         );
     }
 
@@ -566,9 +806,21 @@ public class Board {
         ));
     }
 
+    private void checkPointCards1(){ //todo: mode bot lam cai, nguoi choi duoc xi lat hoac xi ban
+
+    }
+
+    private void checkPointCards2(){ //todo: mode bot lam cai, bot duoc xi lat hoac xi ban ma khong phai cai
+
+    }
+
     private void checkPointCardAtTheStart(){
         Vector2 resutl = checkPoint(cards.get(0));
         if(resutl.x == 0 && (resutl.y == 1 || resutl.y == 2)){
+            if(GGameStart.mode == 1){
+                checkPointCards1();
+                return;
+            }
             SoundEffect.Play(SoundEffect.flipAllCards);
             cards.get(0).get(0).flipCard(true);
             cards.get(0).get(1).flipCard(true);
@@ -616,6 +868,12 @@ public class Board {
             });
             return;
         }
+        if(GGameStart.mode == 1){
+            checkPointCards2();
+            turnAtTheMoment = idBoss + 2;
+            turnOnLight();
+            return;
+        }
         for(int i = 1; i < cards.size; i++) {
             resutl = checkPoint(cards.get(i));
             if(resutl.x == 0 && (resutl.y == 1 || resutl.y == 2)){
@@ -635,8 +893,6 @@ public class Board {
                     game.groupPockerTemp.get(itemp).setVisible(true);
                     game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
                 });
-
-
             }
         }
         play();
@@ -662,7 +918,20 @@ public class Board {
     }
 
     private void initCards(){
-        if(turnInitCards == GGameStart.member*2){
+        if(GGameStart.mode == 1 && turnInitCards%GGameStart.member == (idBoss + 2) && cards.get(turnInitCards%GGameStart.member).size == 2) {
+            Gdx.app.log("debug", "turn: " + turnInitCards%GGameStart.member);
+            sortCardsAtTheStart();
+            group.addAction(sequence(
+                delay(0.6f),
+                GSimpleAction.simpleAction((d, a)-> {
+                    alignCardsAtTheStart();
+                    return true;
+                })
+            ));
+            return;
+        }
+
+        if(turnInitCards == GGameStart.member*2 && cards.get(turnInitCards%GGameStart.member).size == 2 ){
             sortCardsAtTheStart();
             group.addAction(sequence(
                 delay(0.6f),
@@ -675,20 +944,21 @@ public class Board {
         }
         else {
             Card card;
-            if(turnInitCards%6 == 0 && dem == 0){
-                card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),3, 12);
-                dem++;
-            } else if (turnInitCards % 6 == 0 && dem == 1) {
-                card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),2, 12);
-            }
-            else card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),(int)tiles.get(0).x, (int)tiles.get(0).y);
+//            if(turnInitCards%6 == 0 && dem == 0){
+//                card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),3, 2);
+//                dem++;
+//            } else if (turnInitCards % 6 == 0 && dem == 1) {
+//                card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),2, 2);
+//            }
+//            else
+            card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),(int)tiles.get(0).x, (int)tiles.get(0).y);
+            Gdx.app.log("debug" , "GroupCard: " + turnInitCards%GGameStart.member);
             Card cardmove = new Card(gameMainAtlas, group, 0, 0);
             cardmove.hiddenTileDown();
             cards_temp.get(turnInitCards%GGameStart.member).add(cardmove);
             cardmove.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight- cfg.CH*Card.ratioScale)/2);
             tiles.removeIndex(0);
             card.setVisible(false);
-
             float ratioScale = Card.ratioScale;
             float ratio_temp = 2;
             if(turnInitCards%GGameStart.member == 0){
@@ -698,7 +968,7 @@ public class Board {
                 ratioScale = 1;
                 ratio_temp = 3;
             }
-            if(turnInitCards >= GGameStart.member) {
+            if((turnInitCards >= GGameStart.member && GGameStart.mode == 0) || (GGameStart.mode == 1 && cards.get(turnInitCards%GGameStart.member).size == 1)) {
                 card.setPosition(cfg.CW*ratioScale - (cfg.CW*ratioScale)/ratio_temp, card.image.getY());
             }
             cards.get(turnInitCards%GGameStart.member).add(card);
@@ -722,6 +992,7 @@ public class Board {
     private void renderPositionCard(){
         for(int index = 0; index < GGameStart.member; index++ ){
             cg.get(index).setPosition(positionCardGroup.get(index).x,positionCardGroup.get(index).y);
+            Gdx.app.log("debug", "x-y: " + positionCardGroup.get(index).x + "-" + positionCardGroup.get(index).y);
         }
     }
 
@@ -732,14 +1003,26 @@ public class Board {
             return;
         }
         else if(result.x == 0 && result.y >= 16){
-            flipAllCardsBtn.setVisible(true);
-            moveFlipAllCards(true);
-            for(int i = 0; i < GGameStart.member - 1; i++) {
-                if(!idBotOverTurn[i]){
-                    GGameMainScene.flipCards.get(i).setVisible(true);
-                    GGameMainScene.flipCards.get(i).setTouchable(Touchable.enabled);
+            if(GGameStart.mode == 0){
+                flipAllCardsBtn.setVisible(true);
+                moveFlipAllCards(true);
+                for(int i = 0; i < GGameStart.member - 1; i++) {
+                    if(!idBotOverTurn[i]){
+                        GGameMainScene.flipCards.get(i).setVisible(true);
+                        GGameMainScene.flipCards.get(i).setTouchable(Touchable.enabled);
+                    }
                 }
             }
+            else {
+                blockCardBtn.setVisible(true);
+                blockCardBtn.addAction(sequence(
+                    moveTo(850, cg.get(0).getY() + 50, 0.3f, fastSlow),
+                    GSimpleAction.simpleAction((d, a)->{
+                        return true;
+                    })
+                ));
+            }
+
         }
         GGameMainScene.turnLight.setVisible(false);
         takeCardBtn.setPosition(cg.get(0).getX() - takeCardBtn.getWidth() - 90, GMain.screenHeight);
@@ -750,6 +1033,14 @@ public class Board {
     }
 
     private void play(){
+
+        if(GGameStart.mode == 1){
+            if(turnAtTheMoment%GGameStart.member == idBoss + 1){
+                Gdx.app.log("debug", "1039 hoan tat bot");
+                return;
+            }
+        }
+
         if(turnAtTheMoment == 1 && flagTurnLightOfTurn1){
             flagTurnLightOfTurn1 = false;
             turnOnLight();
@@ -782,7 +1073,7 @@ public class Board {
     private void fitPositionGroupCards(){
         if(cards.get(turnAtTheMoment).size > 2) {
             cg.get(turnAtTheMoment).addAction(sequence(
-                moveBy(-1*((cards.get(turnAtTheMoment).size-2)*cfg.CW*Card.ratioScale)/2 + 20, 0, 0.3f),
+                //moveTo(-1*((cards.get(turnAtTheMoment).size-2)*cfg.CW*Card.ratioScale)/2 + 20, 0, 0.3f),
                 GSimpleAction.simpleAction((d, a)-> {
                     turnAtTheMoment++;
                     turnOnLight();
@@ -838,7 +1129,7 @@ public class Board {
             GGameMainScene.turnLight.addAction(Actions.scaleTo(1,1,0.4f, fastSlow));
             SoundEffect.Play(SoundEffect.turnBots);
             GGameMainScene.turnLight.setVisible(true);
-
+            Gdx.app.log("debug", "1135");
             group.addAction(Actions.sequence(
                 delay(1f),
                 GSimpleAction.simpleAction((d, a)->{
@@ -886,7 +1177,7 @@ public class Board {
     private void getCard(){
         Card card = new Card(gameMainAtlas, cg.get(turnAtTheMoment), (int)tiles.get(0).x, (int)tiles.get(0).y);
         card.setVisible(false);
-        card.setPosition((cards.get(turnAtTheMoment).size)*cfg.CW*Card.ratioScale*1/2,0);
+        card.setPosition((cards.get(turnAtTheMoment).size)*cfg.CW*Card.ratioScale/2,0);
         cards.get(turnAtTheMoment).add(card);
         Card cardmove = new Card(gameMainAtlas, group, 0, 0);
         cardmove.setPosition((GMain.screenWidth - cfg.CW* Card.ratioScale)/2, (GMain.screenHeight - cfg.CH*Card.ratioScale)/2);
@@ -897,12 +1188,13 @@ public class Board {
         cardmove.image.addAction(sequence(
             delay(0.8f),
             Actions.parallel(
-                    moveTo(cg.get(turnAtTheMoment).getX() + (cards.get(turnAtTheMoment).size - 1)*cfg.CW*Card.ratioScale*1/2 - 15, cg.get(turnAtTheMoment).getY(), 0.3f, fastSlow),
-                    GSimpleAction.simpleAction((d, a)->{
-                        moveGroupCards(turnAtTheMoment);
-                        return true;
-                    })
-                    ),
+                moveTo(cg.get(turnAtTheMoment).getX() + (cards.get(turnAtTheMoment).size - 1)*cfg.CW*Card.ratioScale*1/2 - 28.75f, cg.get(turnAtTheMoment).getY(), 0.3f, fastSlow),
+                GSimpleAction.simpleAction((d, a)->{
+                    moveGroupCards(turnAtTheMoment);
+                    return true;
+                })
+            ),
+            delay(0.3f),
             GSimpleAction.simpleAction((d, a)-> {
 
                 card.setVisible(true);
@@ -1163,15 +1455,25 @@ public class Board {
 
     private void bet(){
         for(int i = 0; i < GGameStart.member - 1; i++) {
+            if(GGameStart.mode == 1 && i == idBoss)
+                continue;
             int percent = (int) Math.floor(Math.random()*30 + 10);
-            //long moneyPet = (percent*game.bots.get(i).money)/100;
-            long moneyPet = 2000000;
+            long moneyPet = (percent*game.bots.get(i).money)/100;
+            //long moneyPet = 2000000;
             if(moneyPet < 1000000){
                 moneyPet = (moneyPet /10000)*10000;
             }
             game.frameMoney.get(i + 1).setMoney(moneyPet);
             game.bots.get(i).subMoney(moneyPet);
             showPocker(moneyPet, i);
+        }
+        if(GGameStart.mode == 1){
+            Tweens.setTimeout(group, 0.5f, ()->{
+                if(GGameStart.mode == 1){
+                    GGameMainScene.cardDown.setVisible(true);
+                    startRenderCards1();
+                }
+            });
         }
     }
 
@@ -1222,12 +1524,42 @@ public class Board {
                 pocker1.imagePocker.setPosition(x_temp, y_temp);
             }
 
-            game.groupPocker.get(index).addAction(moveTo(game.positionGroupPocker.get(index).x,game.positionGroupPocker.get(index).y, 0.5f));
+            game.groupPocker.get(index).addAction(sequence(
+                moveTo(game.positionGroupPocker.get(index).x,game.positionGroupPocker.get(index).y, 0.5f),
+                GSimpleAction.simpleAction((d, a)->{
+                    return true;
+                })
+            ));
 
             moneyPet = du;
-            //Gdx.app.log("debug", "money: " + moneyPet + " du: " + du + " ratio: " + ratio);
         }
 
+
+    }
+
+    private void startRenderCards1(){
+        takeCardBtn = GUI.createImage(this.gameMainAtlas, "takeCard");
+        newGameBtn = GUI.createImage(this.gameMainAtlas, "newGame");
+        group.addActor(takeCardBtn);
+        group.addActor(newGameBtn);
+        newGameBtn.setPosition(GMain.screenWidth/2, GMain.screenHeight/2, Align.center);
+        newGameBtn.setVisible(false);
+        takeCardBtn.setVisible(false);
+        newGameBtn.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                SoundEffect.Play(SoundEffect.buttonNewGame);
+                newGameBtn.setVisible(false);
+                replay();
+            }
+        });
+
+        addListenerBtnMode1();
+
+        turnInitCards = (idBoss + 2);
+        turnInitCards = turnInitCards%GGameStart.member;
+        startRenderCards();
     }
 
     private void dispose(){

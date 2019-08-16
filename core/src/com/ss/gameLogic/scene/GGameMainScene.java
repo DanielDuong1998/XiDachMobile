@@ -164,6 +164,7 @@ public class GGameMainScene extends GScreen {
         uiGroup.addActor(turnLight);
         turnLight.setVisible(false);
 
+
         //Pocker pocker = new Pocker(gameMainAtlas, uiGroup, 10000);
     }
 

@@ -71,7 +71,7 @@ public class Player {
 
         this.moneyTxt = new Label("" + unit, new Label.LabelStyle(fontBitMap, null));
         this.moneyTxt.setFontScale(0.7f);
-        this.moneyTxt.setPosition(15, -30);
+        this.moneyTxt.setPosition(18, -50);
         group.addActor(this.moneyTxt);
 
     }
