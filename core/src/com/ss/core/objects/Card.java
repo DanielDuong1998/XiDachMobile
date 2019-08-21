@@ -1,5 +1,6 @@
 package com.ss.core.objects;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -11,6 +12,7 @@ import com.badlogic.gdx.utils.Align;
 import com.ss.core.action.exAction.GSimpleAction;
 import com.ss.core.effects.SoundEffect;
 import com.ss.core.util.GUI;
+import com.ss.gameLogic.scene.GGameMainScene;
 
 public class Card extends Image {
     TextureAtlas gameMainAtlas;
@@ -42,6 +44,9 @@ public class Card extends Image {
                 super.clicked(event, x, y);
                 SoundEffect.Play(SoundEffect.flipACard);
                 flipCard(true);
+                if(GGameMainScene.effect.size == 2){
+                    GGameMainScene.disposeParticleCardsPlayer();
+                }
             }
         });
     }

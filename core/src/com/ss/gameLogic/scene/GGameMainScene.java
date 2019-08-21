@@ -1,14 +1,21 @@
 package com.ss.gameLogic.scene;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.ss.GMain;
+import com.ss.core.action.exAction.GPathAction;
+import com.ss.core.action.exAction.GSimpleAction;
+import com.ss.core.commons.Tweens;
+import com.ss.core.effects.EffectSlide;
 import com.ss.core.effects.SoundEffect;
 import com.ss.core.objects.Board;
 import com.ss.core.objects.BoardConfig;
@@ -33,7 +40,7 @@ public class GGameMainScene extends GScreen {
     public Array<Player> bots;
     public Array<Array<Pocker>> pockersTemp;
     Board board;
-    Array<Vector2> positionGroup;
+    public Array<Vector2> positionGroup;
     Array<Vector2> positionFrameMoney;
     Array<Vector2> positionFlipCards;
     public Array<Vector2> positionGroupPocker;
@@ -52,6 +59,7 @@ public class GGameMainScene extends GScreen {
     public static long moneyPlayer = 2000000l;
     Label moneyPlayerTxt;
     public static Image cardDown;
+    public static Array<EffectSlide> effect;
 
 
 
@@ -65,6 +73,12 @@ public class GGameMainScene extends GScreen {
         gameMainAtlas = GAssetsManager.getTextureAtlas("gameMain/gameMain.atlas");
         uiGroup = new Group();
         cfg = new BoardConfig();
+
+        GGameStart.money = GGameStart.prefs.getLong("money");
+        if(GGameStart.money > 0){
+            moneyPlayer = GGameStart.money;
+        }
+
         initFont();
         initUI();
         SoundEffect.initSound();
@@ -83,6 +97,7 @@ public class GGameMainScene extends GScreen {
         initPointTxt();
         renderPointTxt();
         renderGroupPocker();
+        Fly();
         board = new Board(this, gameMainAtlas, uiGroup);
     }
 
@@ -99,14 +114,25 @@ public class GGameMainScene extends GScreen {
             groupPocker.get(i).clearChildren();
             groupPockerTemp.get(i).clearChildren();
         }
-        //initGroupPockers();
+        groupPockerTemp.clear();
+        groupPocker.clear();
+
+        initGroupPockers();
         renderGroupPocker();
+
+        for(int i = 0; i < bots.size; i++){
+            bots.get(i).tie.setVisible(false);
+            bots.get(i).win.setVisible(false);
+            bots.get(i).lose.setVisible(false);
+        }
 
         initFlipsCards();
         renderFlipCards();
         initPointTxt();
         renderPointTxt();
-        frameMoney.get(0).setMoney(0);
+        for(int i = 0; i < frameMoney.size; i++) {
+            frameMoney.get(i).setMoney(0);
+        }
         this.board = new Board(this, gameMainAtlas, uiGroup);
     }
 
@@ -164,8 +190,77 @@ public class GGameMainScene extends GScreen {
         uiGroup.addActor(turnLight);
         turnLight.setVisible(false);
 
-
         //Pocker pocker = new Pocker(gameMainAtlas, uiGroup, 10000);
+
+    }
+
+    private void Fly(){
+        Image plane = GUI.createImage(gameMainAtlas, "plane");
+        uiGroup.addActor(plane);
+        plane.setOrigin(Align.center);
+        Vector2[] pts = new Vector2[GGameStart.member];
+        pts[0] = new Vector2(GMain.screenWidth/2, GMain.screenHeight);
+        for(int i = 1; i < GGameStart.member; i++) {
+            pts[i] = positionFrameMoney.get(i);
+        }
+        planeFly(plane, pts);
+    }
+
+    private void planeFly(Image plane, Vector2 pts[]){
+        plane.addAction(Actions.sequence(
+            GPathAction.init(pts, 0.15f),
+            GSimpleAction.simpleAction((d, a)->{
+                Tweens.setTimeout(uiGroup, 30, ()->{
+                    planeFly(plane, pts);
+                });
+                return true;
+            }))
+        );
+    }
+
+    public void particleCardsPlayer(){
+        effect = new Array<>();
+        EffectSlide effectSlide1 = new EffectSlide("runARound", 540, 490, uiGroup);
+        EffectSlide effectSlide2 = new EffectSlide("runARound", 690, 650, uiGroup);
+
+        effect.add(effectSlide1, effectSlide2);
+        //effect = new EffectSlide("runARound", 540, 480, uiGroup);
+        uiGroup.addActor(effect.get(0));
+        uiGroup.addActor(effect.get(1));
+
+        for(int i = 0; i < effect.size; i++) {
+            effect.get(i).start();
+            moveParticleCardsPlayer(effect.get(i), i);
+        }
+    }
+
+    private void moveParticleCardsPlayer(EffectSlide effect, int mode){
+        float positionX;
+        float positionY;
+        if(mode < 2){
+            positionX = mode == 0 ? 150 : - 150;
+            positionY = 0;
+        }
+        else {
+            positionY = mode == 2 ? 100 : -100;
+            positionX = 0;
+        }
+        effect.addAction(Actions.sequence(
+            Actions.moveBy(positionX, positionY, 0.8f, Interpolation.linear),
+            GSimpleAction.simpleAction((d, a)->{
+                effect.setX(effect.getX() - positionX);
+                effect.setY(effect.getY() - positionY);
+                moveParticleCardsPlayer(effect, mode);
+                return true;
+            })
+        ));
+    }
+
+    public static void disposeParticleCardsPlayer(){
+        for(EffectSlide effectSlide : effect){
+            effectSlide.remove();
+        }
+        effect.clear();
     }
 
     private void initFlipsCards(){
@@ -199,7 +294,7 @@ public class GGameMainScene extends GScreen {
     private void initBot(){
         bots = new Array<>();
         for(int index = 0; index < GGameStart.member - 1; index++){
-            Player bot = new Player(gameMainAtlas, groupsBot.get(index), 2000000, idAvatar.get(index), nameids.get(index));
+            Player bot = new Player(gameMainAtlas, groupsBot.get(index), 500000, idAvatar.get(index), nameids.get(index));
             countIdAvatar++;
             countNameId++;
             bots.add(bot);
@@ -330,7 +425,7 @@ public class GGameMainScene extends GScreen {
                 Vector2 positionF = new Vector2(GMain.screenWidth/2 - 225, 60);
                 positionFlipCards.add(positionF);
 
-                Vector2 positionP1 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 280);
+                Vector2 positionP1 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 290);
                 positionGroupPocker.add(positionP1);
                 break;
             }
@@ -348,8 +443,8 @@ public class GGameMainScene extends GScreen {
                 Vector2 positionF1 = new Vector2(120, 250);
                 positionFlipCards.add(positionF0, positionF1);
 
-                Vector2 positionP1 = new Vector2(GMain.screenWidth - 420 - 50, 280);
-                Vector2 positionP2 = new Vector2(360, 280);
+                Vector2 positionP1 = new Vector2(GMain.screenWidth - 420 - 50, 290);
+                Vector2 positionP2 = new Vector2(360, 290);
                 positionGroupPocker.add(positionP1, positionP2);
                 break;
             }
@@ -370,9 +465,9 @@ public class GGameMainScene extends GScreen {
                 Vector2 positionF2 = new Vector2(100, GMain.screenHeight/2  + 100);
                 positionFlipCards.add(positionF0, positionF1, positionF2);
 
-                Vector2 positionP1 = new Vector2(GMain.screenWidth-400, GMain.screenHeight/2 - 70);
-                Vector2 positionP2 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 200 + 70);
-                Vector2 positionP3 = new Vector2(290, GMain.screenHeight/2 - 70);
+                Vector2 positionP1 = new Vector2(GMain.screenWidth-400, GMain.screenHeight/2 - 80);
+                Vector2 positionP2 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 200 + 80);
+                Vector2 positionP3 = new Vector2(290, GMain.screenHeight/2 - 80);
                 positionGroupPocker.add(positionP1, positionP2, positionP3);
                 break;
             }
@@ -399,10 +494,10 @@ public class GGameMainScene extends GScreen {
                 positionFlipCards.add(positionF0, positionF1, positionF2, positionF3);
 
 
-                Vector2 positionP1 = new Vector2(GMain.screenWidth - 420 - 50, GMain.screenHeight - 310);
-                Vector2 positionP2 = new Vector2(GMain.screenWidth - 420 - 50, 280);
-                Vector2 positionP3 = new Vector2(340, 280);
-                Vector2 positionP4 = new Vector2(340, GMain.screenHeight - 310);
+                Vector2 positionP1 = new Vector2(GMain.screenWidth - 420 - 50, GMain.screenHeight - 320);
+                Vector2 positionP2 = new Vector2(GMain.screenWidth - 420 - 50, 290);
+                Vector2 positionP3 = new Vector2(340, 290);
+                Vector2 positionP4 = new Vector2(340, GMain.screenHeight - 320);
                 positionGroupPocker.add(positionP1, positionP2, positionP3);
                 positionGroupPocker.add(positionP4);
                 break;
@@ -433,11 +528,11 @@ public class GGameMainScene extends GScreen {
                 positionFlipCards.add(positionF0, positionF1, positionF2, positionF3);
                 positionFlipCards.add(positionF4);
 
-                Vector2 positionP1 = new Vector2(GMain.screenWidth - 420 - 50, GMain.screenHeight - 310);
-                Vector2 positionP2 = new Vector2(GMain.screenWidth - 420 - 50, 280);
-                Vector2 positionP3 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 280);
-                Vector2 positionP4 = new Vector2(340, 280);
-                Vector2 positionP5 = new Vector2(340, GMain.screenHeight - 310);
+                Vector2 positionP1 = new Vector2(GMain.screenWidth - 420 - 50, GMain.screenHeight - 320);
+                Vector2 positionP2 = new Vector2(GMain.screenWidth - 420 - 50, 290);
+                Vector2 positionP3 = new Vector2((GMain.screenWidth - cfg.frameMoney)/2, 290);
+                Vector2 positionP4 = new Vector2(340, 290);
+                Vector2 positionP5 = new Vector2(340, GMain.screenHeight - 320);
                 positionGroupPocker.add(positionP1, positionP2, positionP3);
                 positionGroupPocker.add(positionP4, positionP5);
                 break;
@@ -447,11 +542,19 @@ public class GGameMainScene extends GScreen {
 
     public void addMoneyPlayer(long money){
         moneyPlayer += money;
+        GGameStart.prefs.putLong("money", moneyPlayer);
+        GGameStart.prefs.flush();
+        long temp = GGameStart.prefs.getLong("money");
+        Gdx.app.log("debug", "test money local: " + temp);
         showMoneyPlayerTxt();
     }
 
     public void subMoneyPlayer(long money){
         moneyPlayer -= money;
+        GGameStart.prefs.putLong("money", moneyPlayer);
+        GGameStart.prefs.flush();
+        long temp = GGameStart.prefs.getLong("money");
+        Gdx.app.log("debug", "test money local: " + temp);
         showMoneyPlayerTxt();
     }
 
@@ -490,8 +593,29 @@ public class GGameMainScene extends GScreen {
     }
 
     public void newBots(int index){
-        bots.get(index).newBots(countIdAvatar, countNameId, moneyPlayer*2);
+        long moneyNew = maxMoney()*2;
+        Gdx.app.log("debug", "Max money: " + maxMoney());
+        if(moneyNew == 0){
+            moneyNew = 10000000;
+        }
+        bots.get(index).newBots(countIdAvatar, countNameId, moneyNew);
         countIdAvatar++;
         countNameId++;
+
+        if(countIdAvatar == 12)
+            countIdAvatar = 0;
+        if(countNameId == 30)
+            countNameId = 0;
+    }
+
+    private long maxMoney(){
+        long money = moneyPlayer;
+        for(int i = 0; i < bots.size; i++) {
+            if(bots.get(i).money > money){
+                money = bots.get(i).money;
+            }
+        }
+        money = Math.abs(money);
+        return money;
     }
 }

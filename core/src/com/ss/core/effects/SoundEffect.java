@@ -6,7 +6,7 @@ import com.ss.core.util.GAssetsManager;
 
 
 public class SoundEffect {
-    public static int MAX_COMMON = 19;
+    public static int MAX_COMMON = 20;
     public static int renderCards = 0;
     public static int flipACard = 1;
     public static int takeCard = 2;
@@ -26,6 +26,7 @@ public class SoundEffect {
     public static int chipPockers = 16;
     public static int tick = 17;
     public static int shake = 18;
+    public static int doorBell = 19;
 
 
 
@@ -54,6 +55,7 @@ public class SoundEffect {
         commons[chipPockers] = GAssetsManager.getSound("chipPockers.mp3");
         commons[tick] = GAssetsManager.getSound("tick.mp3");
         commons[shake] = GAssetsManager.getSound("shake.mp3");
+        commons[doorBell] = GAssetsManager.getSound("doorbell.mp3");
     }
     public static void Play(int soundCode){
         if(!mute)

@@ -6,6 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Align;
+import com.ss.core.effects.SoundEffect;
 import com.ss.core.util.GAssetsManager;
 import com.ss.core.util.GUI;
 import com.ss.gameLogic.scene.GGameMainScene;
@@ -19,9 +20,11 @@ public class Player {
     BitmapFont fontBitMap;
     public long money;
     String unit;
-
     public Image avatar;
     public Image frameAvt;
+    public Image win;
+    public Image lose;
+    public Image tie;
 
     public Player(TextureAtlas gameMainAtlas, Group group, long money, int idAvatar, int nameid){
         initFont();
@@ -36,6 +39,26 @@ public class Player {
         this.group.addActor(this.frameAvt);
         this.group.addActor(this.avatar);
         this.nameid = nameid;
+
+        win = GUI.createImage(gameMainAtlas, "win");
+        win.setSize(win.getWidth()*0.5f, win.getHeight()*0.5f);
+        win.setPosition(- 100, - 20);
+
+        lose = GUI.createImage(gameMainAtlas, "lose");
+        lose.setSize(lose.getWidth()*0.5f, lose.getHeight()*0.5f);
+        lose.setPosition( - 100,  - 20);
+
+        tie = GUI.createImage(gameMainAtlas, "tie");
+        tie.setSize(tie.getWidth()*0.5f, tie.getHeight()*0.5f);
+        tie.setPosition(- 100, - 20);
+
+        lose.setVisible(false);
+        win.setVisible(false);
+        tie.setVisible(false);
+        group.addActor(win);
+        group.addActor(lose);
+        group.addActor(tie);
+
 
         int div;
         if(money > 1000000000){
@@ -120,6 +143,7 @@ public class Player {
     }
 
     public void newBots(int idAvatar, int nameid, long money){
+        SoundEffect.Play(SoundEffect.doorBell);
         this.avatar.remove();
         this.moneyTxt.remove();
         this.name.remove();
@@ -164,7 +188,31 @@ public class Player {
         this.money = money;
         this.moneyTxt = new Label("" + unit, new Label.LabelStyle(fontBitMap, null));
         this.moneyTxt.setFontScale(0.7f);
-        this.moneyTxt.setPosition(15, -30);
+        this.moneyTxt.setPosition(15, -50);
         group.addActor(this.moneyTxt);
+
+        win.remove();
+        lose.remove();
+        tie.remove();
+
+        win = GUI.createImage(gameMainAtlas, "win");
+        win.setSize(win.getWidth()*0.5f, win.getHeight()*0.5f);
+        win.setPosition(- 100, - 20);
+
+        lose = GUI.createImage(gameMainAtlas, "lose");
+        lose.setSize(lose.getWidth()*0.5f, lose.getHeight()*0.5f);
+        lose.setPosition( - 100,  - 20);
+
+        tie = GUI.createImage(gameMainAtlas, "tie");
+        tie.setSize(tie.getWidth()*0.5f, tie.getHeight()*0.5f);
+        tie.setPosition(- 100, - 20);
+
+        lose.setVisible(false);
+        win.setVisible(false);
+        tie.setVisible(false);
+        group.addActor(win);
+        group.addActor(lose);
+        group.addActor(tie);
+
     }
 }
