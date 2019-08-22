@@ -6,9 +6,12 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.ss.GMain;
@@ -17,6 +20,7 @@ import com.ss.core.action.exAction.GSimpleAction;
 import com.ss.core.commons.Tweens;
 import com.ss.core.effects.EffectSlide;
 import com.ss.core.effects.SoundEffect;
+import com.ss.core.exSprite.GShapeSprite;
 import com.ss.core.objects.Board;
 import com.ss.core.objects.BoardConfig;
 import com.ss.core.objects.Card;
@@ -28,6 +32,10 @@ import com.ss.core.util.GLayer;
 import com.ss.core.util.GScreen;
 import com.ss.core.util.GStage;
 import com.ss.core.util.GUI;
+
+import static com.badlogic.gdx.math.Interpolation.bounceIn;
+import static com.badlogic.gdx.math.Interpolation.bounceOut;
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.scaleTo;
 
 public class GGameMainScene extends GScreen {
     TextureAtlas gameMainAtlas;
@@ -56,16 +64,16 @@ public class GGameMainScene extends GScreen {
     BitmapFont fontBitMap;
     BitmapFont fontBitMap1;
     Group fontGroup;
-    public static long moneyPlayer = 3000000;
+    public static long moneyPlayer = 0;
     Label moneyPlayerTxt;
     public static Image cardDown;
     public static Array<EffectSlide> effect;
-
-
+    Group pauseGroup;
 
     @Override
     public void dispose() {
-        gameMainAtlas.dispose();
+        uiGroup.clearChildren();
+        uiGroup.clear();
     }
 
     @Override
@@ -73,19 +81,10 @@ public class GGameMainScene extends GScreen {
         gameMainAtlas = GAssetsManager.getTextureAtlas("gameMain/gameMain.atlas");
         uiGroup = new Group();
         cfg = new BoardConfig();
+
         initFont();
-
-        GGameStart.money = GGameStart.prefs.getLong("money");
-        if(GGameStart.money > 0){
-            moneyPlayer = GGameStart.money;
-        }
-        else {
-            //checkVideo();
-        }
-
         initUI();
         SoundEffect.initSound();
-        //pokc eer
         initGroupPockers();
         initPositionGroup();
         initGroupBot();
@@ -101,6 +100,16 @@ public class GGameMainScene extends GScreen {
         renderPointTxt();
         renderGroupPocker();
         Fly();
+
+
+        GGameStart.money = GGameStart.prefs.getLong("money");
+        if(GGameStart.money > 0){
+            moneyPlayer = GGameStart.money;
+            initMoneyTxtPlayer();
+        }
+        else {
+            showPausePanel();
+        }
         board = new Board(this, gameMainAtlas, uiGroup);
     }
 
@@ -294,16 +303,7 @@ public class GGameMainScene extends GScreen {
         }
     }
 
-    private void initBot(){
-        bots = new Array<>();
-        for(int index = 0; index < GGameStart.member - 1; index++){
-            int ratio = (int) Math.floor(Math.random()*5 + 1);
-            Player bot = new Player(gameMainAtlas, groupsBot.get(index), moneyPlayer + ratio*1000000, idAvatar.get(index), nameids.get(index));
-            countIdAvatar++;
-            countNameId++;
-            bots.add(bot);
-        }
-
+    private void initMoneyTxtPlayer(){
         long div;
         String unit;
         if(moneyPlayer >= 1000000000){
@@ -328,13 +328,31 @@ public class GGameMainScene extends GScreen {
             du = div%10;
             unit = nguyen + "," + du + "K";
         }
-        else unit = "";
+        else unit = "" + moneyPlayer;
+
+        if(moneyPlayerTxt != null){
+            moneyPlayerTxt.remove();
+        }
 
         moneyPlayerTxt = new Label("" + unit, new Label.LabelStyle(fontBitMap, null));
         moneyPlayerTxt.setFontScale(1.9f);
         moneyPlayerTxt.setAlignment(Align.center);
         moneyPlayerTxt.setPosition(GMain.screenWidth/2, GMain.screenHeight - 35, Align.center);
         uiGroup.addActor(moneyPlayerTxt);
+    }
+
+    private void initBot(){
+        bots = new Array<>();
+        long money = GGameStart.prefs.getLong("money");
+        for(int index = 0; index < GGameStart.member - 1; index++){
+            int ratio = (int) Math.floor(Math.random()*5 + 1);
+            Player bot = new Player(gameMainAtlas, groupsBot.get(index), money + ratio*1000000, idAvatar.get(index), nameids.get(index));
+            countIdAvatar++;
+            countNameId++;
+            bots.add(bot);
+        }
+
+        initMoneyTxtPlayer();
     }
 
     private void initIdAvatarRandom(){
@@ -626,19 +644,97 @@ public class GGameMainScene extends GScreen {
         return money;
     }
 
-    public void checkVideo(){
-        if(GMain.platform.isVideoRewardReady()){
-            GMain.platform.ShowVideoReward(success -> {
-                if(success) {
-                    Gdx.app.log("debug", "done");
-                    addMoneyPlayer(3000000);
-                }
-                else Gdx.app.log("debug", "not done");
-            });
+    public void showPausePanel(){
+        if(pauseGroup != null){
+            pauseGroup.remove();
+        }
+
+        pauseGroup = new Group();
+        GStage.addToLayer(GLayer.top, pauseGroup);
+
+        final GShapeSprite blackOverlay = new GShapeSprite();
+        blackOverlay.createRectangle(true, 0, 0, GMain.screenWidth, GMain.screenHeight);
+        blackOverlay.setColor(0, 0, 0, 0.5f);
+        pauseGroup.addActor(blackOverlay);
+
+        final Group childGroup = new Group();
+        pauseGroup.addActor(childGroup);
+        childGroup.setPosition(GMain.screenWidth/2, GMain.screenHeight/2, Align.center);
+
+        Image panel = GUI.createImage(gameMainAtlas, "blockCard");
+        childGroup.addActor(panel);
+        panel.setPosition(0, 0, Align.center);
+
+        Image title = GUI.createImage(gameMainAtlas, "takeCard");
+        childGroup.addActor(title);
+        title.setPosition(0, -150, Align.center);
+
+        childGroup.setScale(0);
+        childGroup.addAction(scaleTo(1, 1, 0.5f, bounceOut));
+
+        panel.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                panel.setTouchable(Touchable.disabled);
+                Gdx.app.log("debug", "block cards");
+                childGroup.addAction(Actions.sequence(
+                    scaleTo(0, 0, 0.5f, bounceIn),
+                    GSimpleAction.simpleAction((d, a)->{
+                        blackOverlay.addAction(Actions.sequence(
+                            Actions.fadeOut(0.5f),
+                            Actions.removeActor(pauseGroup)
+                        ));
+                        return true;
+                    })
+                ));
+            }
+        });
+
+        title.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                title.setTouchable(Touchable.disabled);
+                checkVideo(1);
+                Gdx.app.log("debug", "take cards");
+                childGroup.addAction(Actions.sequence(
+                    scaleTo(0, 0, 0.5f, bounceIn),
+                    GSimpleAction.simpleAction((d, a)->{
+                        blackOverlay.addAction(Actions.sequence(
+                            Actions.fadeOut(0.5f),
+                            Actions.removeActor(pauseGroup)
+                        ));
+                        return true;
+                    })
+                ));
+            }
+        });
+
+    }
+
+    public void lobby(){
+        setScreen(new GGameBegin());
+    }
+
+    public void checkVideo(int idModeVideo){
+        if(idModeVideo == 1) {
+            if (GMain.platform.isVideoRewardReady()) {
+                GMain.platform.ShowVideoReward(success -> {
+                    if (success) {
+                        Gdx.app.log("debug", "done");
+                        addMoneyPlayer(3000000);
+                    } else {
+                        Gdx.app.log("debug", "not done");
+                    }
+                });
+            } else {
+                Gdx.app.log("debug", "video not loading");
+                addMoneyPlayer(500000);
+            }
         }
         else {
-            Gdx.app.log("debug", "video not loading");
-            //addMoneyPlayer(500000);
+            GMain.platform.ShowFullscreen();
         }
     }
 }

@@ -8,8 +8,8 @@ import com.ss.core.util.GDirectedGame;
 import com.ss.core.util.GScreen;
 import com.ss.core.util.GStage;
 import com.ss.core.util.GStage.StageBorder;
+import com.ss.gameLogic.scene.GGameBegin;
 import com.ss.gameLogic.scene.GGameMainScene;
-import com.ss.gameLogic.scene.GMenuScene;
 
 public class GMain
   extends GDirectedGame
@@ -82,7 +82,7 @@ public class GMain
   
   public static GScreen menuScreen()
   {
-    return new GGameMainScene();
+    return new GGameBegin();
   }
 
   public void create()

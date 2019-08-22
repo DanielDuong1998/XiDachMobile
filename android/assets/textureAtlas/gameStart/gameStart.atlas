@@ -1,0 +1,20 @@
+
+gameStart.png
+size: 2048,1024
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+startBtn
+  rotate: false
+  xy: 2, 2
+  size: 303, 150
+  orig: 303, 150
+  offset: 0, 0
+  index: -1
+startScene
+  rotate: false
+  xy: 2, 154
+  size: 1280, 720
+  orig: 1280, 720
+  offset: 0, 0
+  index: -1

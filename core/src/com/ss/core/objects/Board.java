@@ -20,10 +20,6 @@ import com.ss.core.action.exAction.GSimpleAction;
 import com.ss.core.commons.Tweens;
 import com.ss.core.effects.EffectSlide;
 import com.ss.core.effects.SoundEffect;
-import com.ss.core.exSprite.GShapeSprite;
-import com.ss.core.util.GDevice;
-import com.ss.core.util.GLayer;
-import com.ss.core.util.GStage;
 import com.ss.core.util.GUI;
 import com.ss.gameLogic.scene.GGameMainScene;
 import com.ss.gameLogic.scene.GGameStart;
@@ -76,8 +72,6 @@ public class Board {
 
     Group groupPockerPlayer;
     Group groupPockerPlayerTemp;
-
-    Group pauseGroup;
 
     public Board(GGameMainScene game, TextureAtlas gameMainAtlas, Group group){
         this.game = game;
@@ -153,6 +147,7 @@ public class Board {
             newGameBtn.setTouchable(Touchable.disabled);
             SoundEffect.Play(SoundEffect.buttonNewGame);
             newGameBtn.setVisible(false);
+            game.checkVideo(2);
             replay();
             }
         });
@@ -258,6 +253,7 @@ public class Board {
                 scaleBy(0.5f, 0.5f, 0.1f, circleOut),
                 GSimpleAction.simpleAction((d, a)->{
                     newGameBtn.setVisible(false);
+                    game.checkVideo(2);
                     replay();
                     return true;
                 })
@@ -519,7 +515,10 @@ public class Board {
         if(GGameMainScene.moneyPlayer <= 0){
             Gdx.app.log("debug", "GameOver, watch video to get more money!!!");
             game.setMoneyPlayer(0);
-            showPausePanel();
+            Tweens.setTimeout(group, 2f, ()->{
+                Gdx.app.log("debug", "vao r");
+                game.lobby();
+            });
         }
         else {
             for(int i = 0; i < GGameStart.member - 1; i++){
@@ -537,75 +536,6 @@ public class Board {
                 }
             }
         }
-    }
-
-    private void showPausePanel(){
-        if(pauseGroup != null){
-            pauseGroup.remove();
-        }
-
-        pauseGroup = new Group();
-        GStage.addToLayer(GLayer.top, pauseGroup);
-
-        final GShapeSprite blackOverlay = new GShapeSprite();
-        blackOverlay.createRectangle(true, 0, 0, GMain.screenWidth, GMain.screenHeight);
-        blackOverlay.setColor(0, 0, 0, 0.5f);
-        pauseGroup.addActor(blackOverlay);
-
-        final Group childGroup = new Group();
-        pauseGroup.addActor(childGroup);
-        childGroup.setPosition(GMain.screenWidth/2, GMain.screenHeight/2, Align.center);
-
-        Image panel = GUI.createImage(gameMainAtlas, "blockCard");
-        childGroup.addActor(panel);
-        panel.setPosition(0, 0, Align.center);
-
-        Image title = GUI.createImage(gameMainAtlas, "takeCard");
-        childGroup.addActor(title);
-        title.setPosition(0, -150, Align.center);
-
-        childGroup.setScale(0);
-        childGroup.addAction(scaleTo(1, 1, 0.5f, bounceOut));
-
-        panel.addListener(new ClickListener(){
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                super.clicked(event, x, y);
-                panel.setTouchable(Touchable.disabled);
-                Gdx.app.log("debug", "block cards");
-                childGroup.addAction(Actions.sequence(
-                    scaleTo(0, 0, 0.5f, bounceIn),
-                    GSimpleAction.simpleAction((d, a)->{
-                        blackOverlay.addAction(Actions.sequence(
-                            Actions.fadeOut(0.5f),
-                            Actions.removeActor(pauseGroup)
-                        ));
-                        return true;
-                    })
-                ));
-            }
-        });
-
-        title.addListener(new ClickListener(){
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                super.clicked(event, x, y);
-                title.setTouchable(Touchable.disabled);
-                game.checkVideo();
-                Gdx.app.log("debug", "take cards");
-                childGroup.addAction(Actions.sequence(
-                    scaleTo(0, 0, 0.5f, bounceIn),
-                    GSimpleAction.simpleAction((d, a)->{
-                        blackOverlay.addAction(Actions.sequence(
-                            Actions.fadeOut(0.5f),
-                            Actions.removeActor(pauseGroup)
-                        ));
-                        return true;
-                    })
-                ));
-            }
-        });
-
     }
 
     private void moveBots(int index){
@@ -1229,7 +1159,13 @@ public class Board {
                 });
             }
         }
-        play();
+        if(count != GGameStart.member - 1)
+            play();
+        else {
+            SoundEffect.Play(SoundEffect.loseSound);
+            GGameMainScene.disposeParticleCardsPlayer();
+            newGameBtn.setVisible(true);
+        }
     }
 
     private void initTiles() {
@@ -1278,13 +1214,13 @@ public class Board {
         }
         else {
             Card card;
-//            if(turnInitCards%6 == 0 && dem == 0){
+//            if(turnInitCards%GGameStart.member == 1 && dem == 0){
 //                card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),3, 10);
 //                dem++;
-//            } else if (turnInitCards%6 == 0 && dem == 1) {
+//            } else if (turnInitCards%GGameStart.member == 1 && dem == 1) {
 //                card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),2, 1);
 //            }
-//            else
+//           else
 //             if(turnInitCards%6 == idBoss + 1 && dem1 == 0){
 //                card = new Card(gameMainAtlas, cg.get(turnInitCards%GGameStart.member),2, 10);
 //                dem1++;
@@ -2133,15 +2069,14 @@ public class Board {
     }
 
     private void bet(){
-        int total = 0;
         for(int i = 0; i < GGameStart.member - 1; i++) {
             if(GGameStart.mode == 1 && i == idBoss)
                 continue;
             int gravity1, gravity2;
             if(isGetCard(30))
-                gravity1 = 15;
-            else gravity1 = 10;
-            if(isGetCard(40))
+                gravity1 = 10;
+            else gravity1 = 5;
+            if(isGetCard(30))
                 gravity2 = 10;
             else gravity2 = 5;
             int percent = (int) Math.floor(Math.random()*gravity1 + gravity2);
@@ -2152,7 +2087,6 @@ public class Board {
             moneyPet = (moneyPet /10000)*10000;
             game.frameMoney.get(i + 1).setMoney(moneyPet);
             game.bots.get(i).subMoney(moneyPet);
-            total += moneyPet;
             showPocker(moneyPet, i);
         }
 
@@ -2235,6 +2169,7 @@ public class Board {
             super.clicked(event, x, y);
             SoundEffect.Play(SoundEffect.buttonNewGame);
             newGameBtn.setVisible(false);
+            game.checkVideo(2);
             replay();
             }
         });
