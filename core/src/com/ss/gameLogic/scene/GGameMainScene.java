@@ -294,7 +294,7 @@ public class GGameMainScene extends GScreen {
     private void initBot(){
         bots = new Array<>();
         for(int index = 0; index < GGameStart.member - 1; index++){
-            int ratio = (int) Math.floor(Math.random()*10 + 1);
+            int ratio = (int) Math.floor(Math.random()*5 + 1);
             Player bot = new Player(gameMainAtlas, groupsBot.get(index), moneyPlayer + ratio*1000000, idAvatar.get(index), nameids.get(index));
             countIdAvatar++;
             countNameId++;
@@ -545,8 +545,6 @@ public class GGameMainScene extends GScreen {
         moneyPlayer += money;
         GGameStart.prefs.putLong("money", moneyPlayer);
         GGameStart.prefs.flush();
-        long temp = GGameStart.prefs.getLong("money");
-        Gdx.app.log("debug", "test money local: " + temp);
         showMoneyPlayerTxt();
     }
 
@@ -554,8 +552,13 @@ public class GGameMainScene extends GScreen {
         moneyPlayer -= money;
         GGameStart.prefs.putLong("money", moneyPlayer);
         GGameStart.prefs.flush();
-        long temp = GGameStart.prefs.getLong("money");
-        Gdx.app.log("debug", "test money local: " + temp);
+        showMoneyPlayerTxt();
+    }
+
+    public void setMoneyPlayer(long money){
+        moneyPlayer = money;
+        GGameStart.prefs.putLong("money", moneyPlayer);
+        GGameStart.prefs.flush();
         showMoneyPlayerTxt();
     }
 

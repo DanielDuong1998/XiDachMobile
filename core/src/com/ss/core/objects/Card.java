@@ -41,12 +41,12 @@ public class Card extends Image {
         tileDown.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                super.clicked(event, x, y);
-                SoundEffect.Play(SoundEffect.flipACard);
-                flipCard(true);
-                if(GGameMainScene.effect.size == 2){
-                    GGameMainScene.disposeParticleCardsPlayer();
-                }
+            super.clicked(event, x, y);
+            SoundEffect.Play(SoundEffect.flipACard);
+            flipCard(true);
+            if(GGameMainScene.effect.size == 2){
+                GGameMainScene.disposeParticleCardsPlayer();
+            }
             }
         });
     }

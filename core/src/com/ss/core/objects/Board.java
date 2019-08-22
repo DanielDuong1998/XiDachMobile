@@ -349,8 +349,8 @@ public class Board {
                 SoundEffect.Play(SoundEffect.tick);
                 pockersPlayer.get(itemp).imagePocker.setOrigin(Align.center);
                 pockersPlayer.get(itemp).imagePocker.addAction(sequence(
-                    scaleBy(-0.5f, -0.5f, 0.1f),
-                    scaleBy(0.5f, 0.5f, 0.1f),
+                    scaleBy(-0.5f, -0.5f, 0.01f),
+                    scaleBy(0.5f, 0.5f, 0.01f),
                     GSimpleAction.simpleAction((d, a)->{
                         chipClick(itemp);
                         return true;
@@ -403,7 +403,7 @@ public class Board {
         game.frameMoney.get(0).addMoney(pockersPlayer.get(index).value);
         Gdx.app.log("debug", "herer!!!: " + pockersPlayer.get(index).value);
         pocker.imagePocker.addAction(sequence(
-            moveTo(game.frameMoney.get(0).image.getX() + (float)Math.floor(Math.random()*70) - 580,game.frameMoney.get(0).image.getY() - 470 - (float)Math.floor(Math.random()*30), 0.2f, fastSlow),
+            moveTo(game.frameMoney.get(0).image.getX() + (float)Math.floor(Math.random()*70) - 580,game.frameMoney.get(0).image.getY() - 470 - (float)Math.floor(Math.random()*30), 0.02f, fastSlow),
             GSimpleAction.simpleAction((d, a)->{
                 pockersPlayer.get(index).imagePocker.setTouchable(Touchable.enabled);
                 return true;
@@ -430,7 +430,7 @@ public class Board {
                     Tweens.setTimeout(group, 0.5f, ()->{
                         game.groupPocker.get(itemp).addAction(moveTo(game.frameMoney.get(0).image.getX(),game.frameMoney.get(0).image.getY(), 0.4f, fastSlow ));
                     });
-
+                    game.bots.get(itemp).lose.setVisible(true);
                 }
                 else if(temp == -1) {
                     game.subMoneyPlayer(game.frameMoney.get(itemp+1).money);
@@ -440,9 +440,11 @@ public class Board {
                         game.groupPockerTemp.get(itemp).setVisible(true);
                         game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
                     });
+                    game.bots.get(itemp).win.setVisible(true);
                 }
                 else if(temp == 0){
                     game.bots.get(itemp).addMoney(game.frameMoney.get(itemp+1).money);
+                    game.bots.get(itemp).tie.setVisible(true);
                 }
                 flipACards(itemp+1);
                 return;
@@ -515,6 +517,7 @@ public class Board {
     private void checkMoneyBotPlayer(){
         if(GGameMainScene.moneyPlayer <= 0){
             Gdx.app.log("debug", "GameOver, watch video to get more money!!!");
+            game.setMoneyPlayer(0);
             showPausePanel();
         }
         else {
@@ -587,7 +590,7 @@ public class Board {
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
                 title.setTouchable(Touchable.disabled);
-                game.addMoneyPlayer(2000000);
+                game.addMoneyPlayer(3000000);
                 Gdx.app.log("debug", "take cards");
                 childGroup.addAction(Actions.sequence(
                     scaleTo(0, 0, 0.5f, bounceIn),
@@ -676,6 +679,7 @@ public class Board {
                                 Tweens.setTimeout(group, 0.5f, ()->{
                                     game.groupPocker.get(itemp).addAction(moveTo(game.frameMoney.get(0).image.getX(),game.frameMoney.get(0).image.getY(), 0.4f, fastSlow ));
                                 });
+                                game.bots.get(itemp).lose.setVisible(true);
                             }
                             else if(temp == -1){
                                 game.bots.get(i).addMoney(game.frameMoney.get(i + 1).money*2);
@@ -687,11 +691,11 @@ public class Board {
                                     game.groupPockerTemp.get(itemp).setVisible(true);
                                     game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
                                 });
-
+                                game.bots.get(itemp).win.setVisible(true);
                             }
                             else if(temp == 0){
                                 game.bots.get(i).addMoney(game.frameMoney.get(i + 1).money);
-                                Gdx.app.log("debug", "vao roi ne:))");
+                                game.bots.get(i).tie.setVisible(true);
                             }
                         }
                     }
@@ -750,16 +754,17 @@ public class Board {
                                 game.bots.get(i-1).addMoney(game.frameMoney.get(i).money*2);
                                 game.subMoneyPlayer(game.frameMoney.get(i).money);
                                 game.frameMoney.get(0).subMoney(game.frameMoney.get(i).money);
+                                game.bots.get(i-1).win.setVisible(true);
 
                                 final int itemp = i - 1;
                                 Tweens.setTimeout(group, 0.5f, ()->{
                                     game.groupPockerTemp.get(itemp).setVisible(true);
                                     game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
                                 });
-
                             }
                             else {
                                 game.bots.get(i-1).addMoney(game.frameMoney.get(i).money);
+                                game.bots.get(i-1).tie.setVisible(true);
                             }
                         }
                     }
@@ -1078,11 +1083,6 @@ public class Board {
             if(i != idBoss + 1){
                 Vector2 result = checkPoint(cards.get(i));
                 if(result.y == 1 || result.y == 2){
-                    if(i == 0){
-                        if(GGameMainScene.effect.size == 2){
-                            GGameMainScene.disposeParticleCardsPlayer();
-                        }
-                    }
                     showPointTxt(i);
                     SoundEffect.Play(SoundEffect.xiDachSound);
                     idBotOverTurn1[i] = true;
@@ -1106,6 +1106,9 @@ public class Board {
                         ));
                     }
                     else {
+                        if(GGameMainScene.effect.size == 2){
+                            GGameMainScene.disposeParticleCardsPlayer();
+                        }
                         final int itemp = i;
                         isPlayerWin = true;
                         groupPockerPlayerTemp.setVisible(true);
@@ -1170,6 +1173,7 @@ public class Board {
                     Tweens.setTimeout(group, 0.5f, ()->{
                         game.groupPocker.get(itemp).addAction(moveTo(game.frameMoney.get(0).image.getX(),game.frameMoney.get(0).image.getY(), 0.4f, fastSlow ));
                     });
+                    game.bots.get(itemp).lose.setVisible(true);
                 }
                 else if(temp == -1){
                     game.bots.get(i).addMoney(game.frameMoney.get(i+1).money*2);
@@ -1181,10 +1185,12 @@ public class Board {
                         game.groupPockerTemp.get(itemp).setVisible(true);
                         game.groupPockerTemp.get(itemp).addAction(moveTo(game.groupPocker.get(itemp).getX() + 50,game.groupPocker.get(itemp).getY(), 0.5f, fastSlow));
                     });
+                    game.bots.get(itemp).win.setVisible(true);
 
                 }
                 else if(temp == 0){
                     game.bots.get(i).addMoney(game.frameMoney.get(i+1).money);
+                    game.bots.get(i).tie.setVisible(true);
                 }
             }
             int soundTemp = game.frameMoney.get(0).money > 0 ? SoundEffect.winSound : SoundEffect.loseSound;
@@ -1213,6 +1219,7 @@ public class Board {
                 game.bots.get(i-1).addMoney(game.frameMoney.get(i).money*2);
                 game.subMoneyPlayer(game.frameMoney.get(i).money);
                 game.frameMoney.get(0).subMoney(game.frameMoney.get(i).money);
+                game.bots.get(i-1).win.setVisible(true);
 
                 final int itemp = i - 1;
                 Tweens.setTimeout(group, 0.5f, ()->{
@@ -2125,10 +2132,18 @@ public class Board {
     }
 
     private void bet(){
+        int total = 0;
         for(int i = 0; i < GGameStart.member - 1; i++) {
             if(GGameStart.mode == 1 && i == idBoss)
                 continue;
-            int percent = (int) Math.floor(Math.random()*30 + 10);
+            int gravity1, gravity2;
+            if(isGetCard(30))
+                gravity1 = 15;
+            else gravity1 = 10;
+            if(isGetCard(40))
+                gravity2 = 10;
+            else gravity2 = 5;
+            int percent = (int) Math.floor(Math.random()*gravity1 + gravity2);
             long moneyPet = (percent*game.bots.get(i).money)/100;
             if(moneyPet < 50000){
                 moneyPet = 50000;
@@ -2136,8 +2151,21 @@ public class Board {
             moneyPet = (moneyPet /10000)*10000;
             game.frameMoney.get(i + 1).setMoney(moneyPet);
             game.bots.get(i).subMoney(moneyPet);
+            total += moneyPet;
             showPocker(moneyPet, i);
         }
+
+        if(total > GGameMainScene.moneyPlayer && GGameStart.mode == 0){
+            Gdx.app.log("debug", "tien cua ban khong du");
+            return;
+        }
+
+        if(GGameStart.mode == 1 && total > game.bots.get(idBoss).money){
+            game.newBots(idBoss);
+            Gdx.app.log("debug", "nha cai khong du tien");
+            return;
+        }
+
         if(GGameStart.mode == 1){
             Tweens.setTimeout(group, 0.5f, ()->{
                 if(GGameStart.mode == 1){
