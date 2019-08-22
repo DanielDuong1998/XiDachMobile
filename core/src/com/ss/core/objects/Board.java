@@ -20,6 +20,9 @@ import com.ss.core.action.exAction.GSimpleAction;
 import com.ss.core.commons.Tweens;
 import com.ss.core.effects.EffectSlide;
 import com.ss.core.effects.SoundEffect;
+import com.ss.core.exSprite.GShapeSprite;
+import com.ss.core.util.GLayer;
+import com.ss.core.util.GStage;
 import com.ss.core.util.GUI;
 import com.ss.gameLogic.scene.GGameMainScene;
 import com.ss.gameLogic.scene.GGameStart;
@@ -72,6 +75,8 @@ public class Board {
 
     Group groupPockerPlayer;
     Group groupPockerPlayerTemp;
+
+    Group pauseGroup;
 
     public Board(GGameMainScene game, TextureAtlas gameMainAtlas, Group group){
         this.game = game;
@@ -510,6 +515,7 @@ public class Board {
     private void checkMoneyBotPlayer(){
         if(GGameMainScene.moneyPlayer <= 0){
             Gdx.app.log("debug", "GameOver, watch video to get more money!!!");
+            showPausePanel();
         }
         else {
             for(int i = 0; i < GGameStart.member - 1; i++){
@@ -527,6 +533,75 @@ public class Board {
                 }
             }
         }
+    }
+
+    private void showPausePanel(){
+        if(pauseGroup != null){
+            pauseGroup.remove();
+        }
+
+        pauseGroup = new Group();
+        GStage.addToLayer(GLayer.top, pauseGroup);
+
+        final GShapeSprite blackOverlay = new GShapeSprite();
+        blackOverlay.createRectangle(true, 0, 0, GMain.screenWidth, GMain.screenHeight);
+        blackOverlay.setColor(0, 0, 0, 0.5f);
+        pauseGroup.addActor(blackOverlay);
+
+        final Group childGroup = new Group();
+        pauseGroup.addActor(childGroup);
+        childGroup.setPosition(GMain.screenWidth/2, GMain.screenHeight/2, Align.center);
+
+        Image panel = GUI.createImage(gameMainAtlas, "blockCard");
+        childGroup.addActor(panel);
+        panel.setPosition(0, 0, Align.center);
+
+        Image title = GUI.createImage(gameMainAtlas, "takeCard");
+        childGroup.addActor(title);
+        title.setPosition(0, -150, Align.center);
+
+        childGroup.setScale(0);
+        childGroup.addAction(scaleTo(1, 1, 0.5f, bounceOut));
+
+        panel.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                panel.setTouchable(Touchable.disabled);
+                Gdx.app.log("debug", "block cards");
+                childGroup.addAction(Actions.sequence(
+                    scaleTo(0, 0, 0.5f, bounceIn),
+                    GSimpleAction.simpleAction((d, a)->{
+                        blackOverlay.addAction(Actions.sequence(
+                            Actions.fadeOut(0.5f),
+                            Actions.removeActor(pauseGroup)
+                        ));
+                        return true;
+                    })
+                ));
+            }
+        });
+
+        title.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                title.setTouchable(Touchable.disabled);
+                game.addMoneyPlayer(2000000);
+                Gdx.app.log("debug", "take cards");
+                childGroup.addAction(Actions.sequence(
+                    scaleTo(0, 0, 0.5f, bounceIn),
+                    GSimpleAction.simpleAction((d, a)->{
+                        blackOverlay.addAction(Actions.sequence(
+                            Actions.fadeOut(0.5f),
+                            Actions.removeActor(pauseGroup)
+                        ));
+                        return true;
+                    })
+                ));
+            }
+        });
+
     }
 
     private void moveBots(int index){
@@ -2058,12 +2133,7 @@ public class Board {
             if(moneyPet < 50000){
                 moneyPet = 50000;
             }
-            Gdx.app.log("debug", "moneypet1: " + moneyPet);
-            //long moneyPet = 2000000;
-            if(moneyPet < 1000000){
-                moneyPet = (moneyPet /10000)*10000;
-            }
-            Gdx.app.log("debug", "moneypet2: " + moneyPet);
+            moneyPet = (moneyPet /10000)*10000;
             game.frameMoney.get(i + 1).setMoney(moneyPet);
             game.bots.get(i).subMoney(moneyPet);
             showPocker(moneyPet, i);
@@ -2080,37 +2150,26 @@ public class Board {
 
     private void showPocker(long moneyPet, int index){
         int ratio = 0;
+        long ex = moneyPet;
 
         while(moneyPet > 0){
             if(moneyPet >= 500000) {
                 ratio = 500000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
-
             }
             else if(moneyPet >= 200000){
                 ratio = 200000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
-
             }
             else if(moneyPet >= 100000){
                 ratio = 100000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
-
             }
             else if(moneyPet >= 50000){
                 ratio = 50000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
-
             }
             else if(moneyPet >= 20000){
                 ratio = 20000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
-
             }
             else {
                 ratio = 10000;
-                Gdx.app.log("debug", "vao ratio: " + ratio);
-
             }
 
             long nguyen = moneyPet/ratio;
