@@ -56,7 +56,7 @@ public class GGameMainScene extends GScreen {
     BitmapFont fontBitMap;
     BitmapFont fontBitMap1;
     Group fontGroup;
-    public static long moneyPlayer = 2000000l;
+    public static long moneyPlayer = 3000000;
     Label moneyPlayerTxt;
     public static Image cardDown;
     public static Array<EffectSlide> effect;
@@ -73,13 +73,16 @@ public class GGameMainScene extends GScreen {
         gameMainAtlas = GAssetsManager.getTextureAtlas("gameMain/gameMain.atlas");
         uiGroup = new Group();
         cfg = new BoardConfig();
+        initFont();
 
         GGameStart.money = GGameStart.prefs.getLong("money");
         if(GGameStart.money > 0){
             moneyPlayer = GGameStart.money;
         }
+        else {
+            //checkVideo();
+        }
 
-        initFont();
         initUI();
         SoundEffect.initSound();
         //pokc eer
@@ -621,5 +624,21 @@ public class GGameMainScene extends GScreen {
         }
         money = Math.abs(money);
         return money;
+    }
+
+    public void checkVideo(){
+        if(GMain.platform.isVideoRewardReady()){
+            GMain.platform.ShowVideoReward(success -> {
+                if(success) {
+                    Gdx.app.log("debug", "done");
+                    addMoneyPlayer(3000000);
+                }
+                else Gdx.app.log("debug", "not done");
+            });
+        }
+        else {
+            Gdx.app.log("debug", "video not loading");
+            //addMoneyPlayer(500000);
+        }
     }
 }

@@ -21,6 +21,7 @@ import com.ss.core.commons.Tweens;
 import com.ss.core.effects.EffectSlide;
 import com.ss.core.effects.SoundEffect;
 import com.ss.core.exSprite.GShapeSprite;
+import com.ss.core.util.GDevice;
 import com.ss.core.util.GLayer;
 import com.ss.core.util.GStage;
 import com.ss.core.util.GUI;
@@ -590,7 +591,7 @@ public class Board {
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
                 title.setTouchable(Touchable.disabled);
-                game.addMoneyPlayer(3000000);
+                game.checkVideo();
                 Gdx.app.log("debug", "take cards");
                 childGroup.addAction(Actions.sequence(
                     scaleTo(0, 0, 0.5f, bounceIn),
@@ -2153,17 +2154,6 @@ public class Board {
             game.bots.get(i).subMoney(moneyPet);
             total += moneyPet;
             showPocker(moneyPet, i);
-        }
-
-        if(total > GGameMainScene.moneyPlayer && GGameStart.mode == 0){
-            Gdx.app.log("debug", "tien cua ban khong du");
-            return;
-        }
-
-        if(GGameStart.mode == 1 && total > game.bots.get(idBoss).money){
-            game.newBots(idBoss);
-            Gdx.app.log("debug", "nha cai khong du tien");
-            return;
         }
 
         if(GGameStart.mode == 1){
