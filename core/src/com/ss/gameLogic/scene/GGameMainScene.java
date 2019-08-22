@@ -294,7 +294,8 @@ public class GGameMainScene extends GScreen {
     private void initBot(){
         bots = new Array<>();
         for(int index = 0; index < GGameStart.member - 1; index++){
-            Player bot = new Player(gameMainAtlas, groupsBot.get(index), 500000, idAvatar.get(index), nameids.get(index));
+            int ratio = (int) Math.floor(Math.random()*10 + 1);
+            Player bot = new Player(gameMainAtlas, groupsBot.get(index), moneyPlayer + ratio*1000000, idAvatar.get(index), nameids.get(index));
             countIdAvatar++;
             countNameId++;
             bots.add(bot);

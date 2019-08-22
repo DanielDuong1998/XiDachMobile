@@ -1236,8 +1236,8 @@ public class Board {
             SoundEffect.Play(SoundEffect.renderCards);
             cardmove.image.addAction(sequence(
                 parallel(
-                    moveTo(cg.get(turnInitCards%GGameStart.member).getX(), cg.get(turnInitCards%GGameStart.member).getY(), 0.3f, fastSlow),
-                    rotateBy(-1*((int)Math.floor(Math.random()*81 + 100) + 10), 0.3f)
+                    moveTo(cg.get(turnInitCards%GGameStart.member).getX(), cg.get(turnInitCards%GGameStart.member).getY(), 0.2f, linear),
+                    rotateBy(-1*((int)Math.floor(Math.random()*81 + 100) + 10), 0.2f)
                 ),
                 GSimpleAction.simpleAction((d, a)-> {
                     turnInitCards++;
