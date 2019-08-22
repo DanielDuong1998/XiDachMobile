@@ -11,7 +11,7 @@ public class GGameStart extends GScreen {
     TextureAtlas gameStartAtlas;
     Group uiGroup;
     public static int member = 6;
-    public static int mode = 1;
+    public static int mode = 0;
     public static int idBoss = -1;
     public static long money = 0;
     public static Preferences prefs = Gdx.app.getPreferences("My Preferences");

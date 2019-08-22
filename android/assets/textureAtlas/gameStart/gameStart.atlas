@@ -4,17 +4,31 @@ size: 2048,1024
 format: RGBA8888
 filter: Nearest,Nearest
 repeat: none
+noneTick
+  rotate: false
+  xy: 1284, 896
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
 startBtn
   rotate: false
-  xy: 2, 2
-  size: 303, 150
-  orig: 303, 150
+  xy: 2, 104
+  size: 323, 170
+  orig: 323, 170
   offset: 0, 0
   index: -1
 startScene
   rotate: false
-  xy: 2, 154
+  xy: 2, 276
   size: 1280, 720
   orig: 1280, 720
+  offset: 0, 0
+  index: -1
+ticked
+  rotate: false
+  xy: 2, 2
+  size: 100, 100
+  orig: 100, 100
   offset: 0, 0
   index: -1

@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -37,25 +38,78 @@ public class GGameBegin extends GScreen {
 
        Image startBtn = GUI.createImage(menuAtlas, "startBtn");
        menuGroup.addActor(startBtn);
+       startBtn.setOrigin(Align.center);
 
-       startBtn.setPosition(GMain.screenWidth/2, GMain.screenHeight * (float) 4/5, Align.center);
+       startBtn.setPosition(GMain.screenWidth/2, GMain.screenHeight * (float) 5/6, Align.center);
        final GScreen gScreen = new GGameMainScene();
        menuGroup.setOrigin(Align.center);
 
         startBtn.addListener(new ClickListener(){
            @Override
            public void clicked(InputEvent event, float x, float y) {
-               super.clicked(event, x, y);
-               Gdx.app.log("debug", "click here!!!");
-               menuGroup.addAction(Actions.sequence(
-                   Actions.scaleBy(-1, -1, 0.5f, Interpolation.linear),
+           super.clicked(event, x, y);
+           startBtn.setTouchable(Touchable.disabled);
+           startBtn.setScale(0.2f);
+           startBtn.addAction(Actions.sequence(
+                   Actions.scaleTo(1, 1, 0.5f, Interpolation.bounceOut),
                    GSimpleAction.simpleAction((d, a)->{
+                       setScreen(gScreen);
                        return true;
                    })
-               ));
-               setScreen(gScreen);
+           ));
            }
        });
+
+        Image noneTick = GUI.createImage(menuAtlas, "noneTick");
+        Image tick = GUI.createImage(menuAtlas, "ticked");
+        menuGroup.addActor(noneTick);
+        menuGroup.addActor(tick);
+
+        noneTick.setSize(noneTick.getWidth()*0.5f, noneTick.getHeight()*0.5f);
+        tick.setSize(tick.getWidth()*0.5f, tick.getHeight()*0.5f);
+
+        noneTick.setPosition(GMain.screenWidth/2 + 180, GMain.screenHeight/2 + 180);
+        tick.setPosition(GMain.screenWidth/2 + 180, GMain.screenHeight/2 + 180);
+
+        noneTick.setOrigin(Align.center);
+        tick.setOrigin(Align.center);
+        tick.setVisible(false);
+
+        noneTick.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                tick.setScale(0.5f);
+                noneTick.setVisible(false);
+                tick.setVisible(true);
+                tick.addAction(Actions.sequence(
+                    Actions.scaleTo(1, 1, 0.1f, Interpolation.bounceOut),
+                    GSimpleAction.simpleAction((d,a)->{
+                        GGameStart.mode = 1;
+                        return true;
+                    })
+                ));
+            }
+        });
+
+        tick.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                noneTick.setScale(0.5f);
+                tick.setVisible(false);
+                noneTick.setVisible(true);
+                noneTick.addAction(Actions.sequence(
+                        Actions.scaleTo(1, 1, 0.1f, Interpolation.bounceOut),
+                        GSimpleAction.simpleAction((d,a)->{
+                            GGameStart.mode = 0;
+                            return true;
+                        })
+                ));
+            }
+        });
+
+
     }
 
     @Override
