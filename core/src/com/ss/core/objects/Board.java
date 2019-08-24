@@ -513,6 +513,7 @@ public class Board {
 
     private void checkMoneyBotPlayer(){
         if(GGameMainScene.moneyPlayer <= 0){
+            newGameBtn.setTouchable(Touchable.disabled);
             Gdx.app.log("debug", "GameOver, watch video to get more money!!!");
             game.setMoneyPlayer(0);
             Tweens.setTimeout(group, 2f, ()->{

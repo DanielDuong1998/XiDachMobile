@@ -10,6 +10,8 @@ import com.badlogic.gdx.scenes.scene2d.Group;
 public class EffectSlide extends Actor{
     private static FileHandle handle = Gdx.files.internal("particleSilde/side");
     private static FileHandle handle1 = Gdx.files.internal("particleSilde/runAround");
+    private static FileHandle handle2 = Gdx.files.internal("particleSilde/runAround2");
+
     private ParticleEffect effect;
     private Actor parent;
     private Group stage;
@@ -30,6 +32,11 @@ public class EffectSlide extends Actor{
             effect.load(handle1,Gdx.files.internal("particleSilde"));
             effect.scaleEffect(1.5f, 2f);
             effect.setPosition(x,y);
+        }
+        else if(type == "runARound2"){
+            effect.load(handle2, Gdx.files.internal("particleSlide"));
+            effect.scaleEffect(1.5f, 2f);
+            effect.setPosition(x, y);
         }
 
 

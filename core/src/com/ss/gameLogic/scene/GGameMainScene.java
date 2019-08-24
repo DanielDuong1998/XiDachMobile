@@ -35,7 +35,9 @@ import com.ss.core.util.GUI;
 
 import static com.badlogic.gdx.math.Interpolation.bounceIn;
 import static com.badlogic.gdx.math.Interpolation.bounceOut;
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.moveBy;
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.scaleTo;
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.sequence;
 
 public class GGameMainScene extends GScreen {
     TextureAtlas gameMainAtlas;
@@ -69,6 +71,10 @@ public class GGameMainScene extends GScreen {
     public static Image cardDown;
     public static Array<EffectSlide> effect;
     Group pauseGroup;
+
+    Image menuButton;
+    boolean menuBtnClick = true;
+    Image out, speaker1, speaker2, circleBtn;
 
     @Override
     public void dispose() {
@@ -165,6 +171,141 @@ public class GGameMainScene extends GScreen {
         fontBitMap1 = GAssetsManager.getBitmapFont("font_white.fnt");
     }
 
+    private void initMenuBtn(){
+        menuButton = GUI.createImage(gameMainAtlas, "menu");
+        menuButton.setSize(menuButton.getWidth()*0.5f, menuButton.getHeight()*0.5f);
+        uiGroup.addActor(menuButton);
+        menuButton.setPosition(menuButton.getWidth()/2, GMain.screenHeight - menuButton.getHeight()/2, Align.center);
+
+        Group groupSoundBtn = new Group();
+        uiGroup.addActor(groupSoundBtn);
+
+        out = GUI.createImage(gameMainAtlas, "out");
+        out.setSize(out.getWidth()*0.5f, out.getHeight()*0.5f);
+        uiGroup.addActor(out);
+        out.setPosition(menuButton.getX() + out.getWidth()/2, menuButton.getY() + 50, Align.center);
+        out.setVisible(false);
+
+        circleBtn = GUI.createImage(gameMainAtlas, "circleButton");
+        groupSoundBtn.addActor(circleBtn);
+        circleBtn.setSize(out.getWidth(), out.getHeight());
+        circleBtn.setPosition(menuButton.getX() + circleBtn.getWidth()/2, menuButton.getY() + 50, Align.center);
+        circleBtn.setVisible(false);
+
+        speaker1 = GUI.createImage(gameMainAtlas, "mute");
+        groupSoundBtn.addActor(speaker1);
+        speaker1.setPosition(circleBtn.getX() + speaker1.getWidth()/2 + 13, circleBtn.getY() + 47, Align.center);
+        speaker1.setSize(speaker1.getWidth()*0.8f, speaker1.getHeight()*0.8f);
+
+        speaker2 = GUI.createImage(gameMainAtlas, "unMute");
+        groupSoundBtn.addActor(speaker2);
+        speaker2.setPosition(circleBtn.getX() + speaker2.getWidth()/2 + 13, circleBtn.getY() + 47, Align.center);
+        speaker2.setSize(speaker2.getWidth()*0.8f, speaker2.getHeight()*0.8f);
+
+        speaker1.setVisible(false);
+        speaker2.setVisible(false);
+
+        speaker1.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                SoundEffect.mute = false;
+                speaker1.setTouchable(Touchable.disabled);
+                speaker2.setTouchable(Touchable.enabled);
+                SoundEffect.Play(SoundEffect.button);
+                speaker1.setVisible(false);
+                speaker2.setVisible(true);
+                if(GGameStart.isNotMute){
+                    GGameStart.isNotMute = false;
+                }
+                else GGameStart.isNotMute = true;
+
+            }
+        });
+
+        speaker2.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                speaker2.setTouchable(Touchable.disabled);
+                speaker1.setTouchable(Touchable.enabled);
+                SoundEffect.Play(SoundEffect.button);
+                speaker2.setVisible(false);
+                speaker1.setVisible(true);
+                if(GGameStart.isNotMute){
+                    GGameStart.isNotMute = false;
+                }
+                else GGameStart.isNotMute = true;
+
+                SoundEffect.mute = true;
+            }
+        });
+
+        menuButton.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                SoundEffect.Play(SoundEffect.button);
+                final int rotation = menuBtnClick ? 90 : -90;
+                menuBtnClick = !menuBtnClick;
+                menuButton.setOrigin(Align.center);
+                menuButton.setTouchable(Touchable.disabled);
+                addBtnMenu(groupSoundBtn,GGameStart.isNotMute, !menuBtnClick);
+
+                menuButton.addAction(Actions.sequence(
+                    Actions.rotateBy(rotation, 0.2f, Interpolation.linear),
+                    GSimpleAction.simpleAction((d, a)->{
+                        menuButton.setTouchable(Touchable.enabled);
+                        return true;
+                    })
+                ));
+            }
+        });
+
+        out.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                SoundEffect.Play(SoundEffect.button);
+                lobby();
+            }
+        });
+    }
+
+    private void addBtnMenu(Group groupSoundBtn, boolean isNotMute, boolean menuBtnClick){
+        float pY1 = menuBtnClick ? -90 : 90;
+        float pY2 = menuBtnClick ? -170 : 170;
+
+        out.setVisible(true);
+        circleBtn.setVisible(true);
+
+        out.addAction(Actions.sequence(
+            moveBy(0, pY1, 0.2f, Interpolation.linear)
+        ));
+
+        Image speaker = isNotMute ? speaker2 : speaker1;
+
+        if(isNotMute){
+            speaker2.setVisible(true);
+            speaker1.setVisible(false);
+        }
+        else {
+            speaker1.setVisible(true);
+            speaker2.setVisible(false);
+        }
+
+
+        groupSoundBtn.addAction(sequence(
+            moveBy(0, pY2, 0.2f, Interpolation.linear),
+            GSimpleAction.simpleAction((d, a)->{
+                out.setVisible(menuBtnClick);
+                circleBtn.setVisible(menuBtnClick);
+                speaker.setVisible(menuBtnClick);
+                return true;
+            })
+        ));
+
+    }
 
     private void initName(){
         firstName = new String[]{"Vu", "Tuyen", "Calverley", "Alan", "Eggleston", "Ferryman", "Gail", "Daniel", "Josey", "Kim",
@@ -202,7 +343,8 @@ public class GGameMainScene extends GScreen {
         uiGroup.addActor(turnLight);
         turnLight.setVisible(false);
 
-        //Pocker pocker = new Pocker(gameMainAtlas, uiGroup, 10000);
+        initMenuBtn();
+
 
     }
 
@@ -234,11 +376,15 @@ public class GGameMainScene extends GScreen {
         effect = new Array<>();
         EffectSlide effectSlide1 = new EffectSlide("runARound", 540, 490, uiGroup);
         EffectSlide effectSlide2 = new EffectSlide("runARound", 690, 650, uiGroup);
+//        EffectSlide effectSlide3 = new EffectSlide("runARound2", 100, 200, uiGroup);
+//        EffectSlide effectSlide4 = new EffectSlide("runARound2", 200, 200, uiGroup);
 
-        effect.add(effectSlide1, effectSlide2);
+        effect.add(effectSlide1, effectSlide2/*, effectSlide3, effectSlide4*/);
         //effect = new EffectSlide("runARound", 540, 480, uiGroup);
         uiGroup.addActor(effect.get(0));
         uiGroup.addActor(effect.get(1));
+//        uiGroup.addActor(effect.get(2));
+//        uiGroup.addActor(effect.get(3));
 
         for(int i = 0; i < effect.size; i++) {
             effect.get(i).start();
@@ -714,6 +860,8 @@ public class GGameMainScene extends GScreen {
     }
 
     public void lobby(){
+        uiGroup.clearChildren();
+        uiGroup.clear();
         setScreen(new GGameBegin());
     }
 
