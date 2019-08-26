@@ -6,28 +6,28 @@ filter: Nearest,Nearest
 repeat: none
 3000000
   rotate: false
-  xy: 403, 172
+  xy: 403, 189
   size: 302, 101
   orig: 302, 101
   offset: 0, 0
   index: -1
 500000
   rotate: false
-  xy: 1786, 895
+  xy: 1786, 912
   size: 256, 100
   orig: 256, 100
   offset: 0, 0
   index: -1
 cancel
   rotate: false
-  xy: 1284, 388
+  xy: 1284, 405
   size: 253, 102
   orig: 253, 102
   offset: 0, 0
   index: -1
 confirm
   rotate: false
-  xy: 403, 68
+  xy: 403, 85
   size: 253, 102
   orig: 253, 102
   offset: 0, 0
@@ -35,55 +35,55 @@ confirm
 down
   rotate: false
   xy: 1582, 568
-  size: 22, 23
-  orig: 22, 23
+  size: 40, 40
+  orig: 40, 40
   offset: 0, 0
   index: -1
 modeStart
   rotate: false
-  xy: 1284, 492
+  xy: 1284, 509
   size: 296, 99
   orig: 296, 99
   offset: 0, 0
   index: -1
 noneTick
   rotate: false
-  xy: 1602, 593
+  xy: 1602, 610
   size: 100, 100
   orig: 100, 100
   offset: 0, 0
   index: -1
 panel
   rotate: false
-  xy: 1284, 695
+  xy: 1284, 712
   size: 500, 300
   orig: 500, 300
   offset: 0, 0
   index: -1
 quitGame
   rotate: false
-  xy: 1284, 593
+  xy: 1284, 610
   size: 316, 100
   orig: 316, 100
   offset: 0, 0
   index: -1
 startBtn
   rotate: false
-  xy: 2, 27
+  xy: 2, 44
   size: 399, 246
   orig: 399, 246
   offset: 0, 0
   index: -1
 startScene
   rotate: false
-  xy: 2, 275
+  xy: 2, 292
   size: 1280, 720
   orig: 1280, 720
   offset: 0, 0
   index: -1
 ticked
   rotate: false
-  xy: 707, 173
+  xy: 707, 190
   size: 100, 100
   orig: 100, 100
   offset: 0, 0
@@ -91,7 +91,7 @@ ticked
 up
   rotate: false
   xy: 2, 2
-  size: 22, 23
-  orig: 22, 23
+  size: 40, 40
+  orig: 40, 40
   offset: 0, 0
   index: -1

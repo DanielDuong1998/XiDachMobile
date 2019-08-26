@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.ss.GMain;
 import com.ss.core.action.exAction.GSimpleAction;
+import com.ss.core.effects.EffectSlide;
 import com.ss.core.effects.SoundEffect;
 import com.ss.core.util.GAssetsManager;
 import com.ss.core.util.GLayer;
@@ -43,6 +44,10 @@ public class GGameBegin extends GScreen {
         menuAtlas = GAssetsManager.getTextureAtlas("gameStart/gameStart.atlas");
         Image bg = GUI.createImage(menuAtlas, "startScene");
         menuGroup.addActor(bg);
+
+        EffectSlide effectSlideBg = new EffectSlide("bg", GMain.screenWidth/2, GMain.screenHeight/2, menuGroup);
+        menuGroup.addActor(effectSlideBg);
+        effectSlideBg.start();
 
        startBtn = GUI.createImage(menuAtlas, "startBtn");
        menuGroup.addActor(startBtn);
@@ -155,7 +160,7 @@ public class GGameBegin extends GScreen {
                     SoundEffect.Play(SoundEffect.button);
                     cancel.setTouchable(Touchable.disabled);
                     group.addAction(Actions.sequence(
-                        Actions.scaleTo(0, 0, 0.4f, Interpolation.swingIn),
+                        Actions.scaleTo(0, 0, 0.4f, Interpolation.slowFast),
                         GSimpleAction.simpleAction((d, a)->{
                             confirm.remove();
                             cancel.remove();
@@ -194,7 +199,7 @@ public class GGameBegin extends GScreen {
                 SoundEffect.Play(SoundEffect.button);
                 confirm.setTouchable(Touchable.disabled);
                 group.addAction(Actions.sequence(
-                        Actions.scaleTo(0, 0, 0.4f, Interpolation.swingIn)
+                        Actions.scaleTo(0, 0, 0.4f, Interpolation.elasticIn)
                 ));
             }
         });
@@ -211,7 +216,7 @@ public class GGameBegin extends GScreen {
         panel.setOrigin(Align.center);
         panel.setPosition(0, 0, Align.center);
         panel.addAction(Actions.sequence(
-            Actions.scaleTo(2, 2, 0.5f, Interpolation.bounceOut),
+            Actions.scaleTo(2, 2, 0.5f, Interpolation.elasticOut),
             GSimpleAction.simpleAction((d, a)->{
                 showTextPanelStart(panelGroup);
                 return true;
@@ -245,8 +250,8 @@ public class GGameBegin extends GScreen {
 
         confirm.setPosition(150,  modeStart.getHeight() + 80, Align.center);
         cancel.setPosition( -150,  modeStart.getHeight() + 80, Align.center);
-        up.setPosition( 300,- 120, Align.center);
-        down.setPosition( 20, - 120, Align.center);
+        up.setPosition( 300,- 132, Align.center);
+        down.setPosition( 0, - 132, Align.center);
         countTxt.setPosition( 90, -115, Align.center);
 
         AddtickBox(panelGroup);
@@ -278,7 +283,7 @@ public class GGameBegin extends GScreen {
                 super.clicked(event, x, y);
                 SoundEffect.Play(SoundEffect.button);
                 group.addAction(Actions.sequence(
-                    Actions.scaleTo(0, 0, 0.5f, Interpolation.bounceIn),
+                    Actions.scaleTo(0, 0, 0.2f, Interpolation.slowFast),
                     GSimpleAction.simpleAction((d, a)->{
                         group.clearChildren();
                         group.clear();

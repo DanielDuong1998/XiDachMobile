@@ -1,0 +1,523 @@
+SL_Cooling_00_03
+- Delay -
+active: false
+- Duration - 
+lowMin: 300.0
+lowMax: 300.0
+- Count - 
+min: 0
+max: 200
+- Emission - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 500.0
+highMax: 500.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Life - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 500.0
+highMax: 500.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+independent: false
+- Life Offset - 
+active: false
+independent: false
+- X Offset - 
+active: false
+- Y Offset - 
+active: false
+- Spawn Shape - 
+shape: point
+- Spawn Width - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 0.0
+highMax: 0.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Spawn Height - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 0.0
+highMax: 0.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- X Scale - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 15.0
+highMax: 38.0
+relative: false
+scalingCount: 6
+scaling0: 1.0
+scaling1: 0.64044946
+scaling2: 0.9044944
+scaling3: 0.3988764
+scaling4: 0.71348315
+scaling5: 0.0
+timelineCount: 6
+timeline0: 0.0
+timeline1: 0.19962335
+timeline2: 0.40301317
+timeline3: 0.60828626
+timeline4: 0.80414313
+timeline5: 0.99811673
+- Y Scale - 
+active: false
+- Velocity - 
+active: true
+lowMin: 0.0
+lowMax: 0.0
+highMin: 229.0
+highMax: 275.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Angle - 
+active: true
+lowMin: 0.0
+lowMax: 0.0
+highMin: 0.0
+highMax: 360.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Rotation - 
+active: false
+- Wind - 
+active: false
+- Gravity - 
+active: false
+- Tint - 
+colorsCount: 12
+colors0: 1.0
+colors1: 1.0
+colors2: 1.0
+colors3: 0.6
+colors4: 0.0
+colors5: 0.6
+colors6: 1.0
+colors7: 0.19607843
+colors8: 0.0
+colors9: 1.0
+colors10: 1.0
+colors11: 1.0
+timelineCount: 4
+timeline0: 0.0
+timeline1: 0.44014734
+timeline2: 0.71086556
+timeline3: 1.0
+- Transparency - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 1.0
+highMax: 1.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Options - 
+attached: false
+continuous: false
+aligned: false
+additive: true
+behind: false
+premultipliedAlpha: false
+spriteMode: single
+- Image Paths -
+/Users/dungle/Desktop/libgdx/D:\绮掑瓙\docs\api\resources\SL_Cooling_00_02.png
+
+
+SL_Cooling_00_02
+- Delay -
+active: false
+- Duration - 
+lowMin: 200.0
+lowMax: 200.0
+- Count - 
+min: 0
+max: 1
+- Emission - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 5000.0
+highMax: 5000.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Life - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 200.0
+highMax: 200.0
+relative: false
+scalingCount: 2
+scaling0: 1.0
+scaling1: 0.98876405
+timelineCount: 2
+timeline0: 0.0
+timeline1: 1.0
+independent: false
+- Life Offset - 
+active: false
+independent: false
+- X Offset - 
+active: false
+- Y Offset - 
+active: false
+- Spawn Shape - 
+shape: point
+- Spawn Width - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 0.0
+highMax: 0.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Spawn Height - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 0.0
+highMax: 0.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- X Scale - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 208.0
+highMax: 208.0
+relative: false
+scalingCount: 3
+scaling0: 1.0
+scaling1: 0.3877551
+scaling2: 1.0
+timelineCount: 3
+timeline0: 0.0
+timeline1: 0.46575344
+timeline2: 1.0
+- Y Scale - 
+active: false
+- Velocity - 
+active: false
+- Angle - 
+active: false
+- Rotation - 
+active: false
+- Wind - 
+active: false
+- Gravity - 
+active: false
+- Tint - 
+colorsCount: 12
+colors0: 1.0
+colors1: 0.99607843
+colors2: 0.0
+colors3: 1.0
+colors4: 1.0
+colors5: 1.0
+colors6: 1.0
+colors7: 0.2
+colors8: 0.2
+colors9: 1.0
+colors10: 0.99607843
+colors11: 0.0
+timelineCount: 4
+timeline0: 0.0
+timeline1: 0.32412523
+timeline2: 0.7311234
+timeline3: 1.0
+- Transparency - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 1.0
+highMax: 1.0
+relative: false
+scalingCount: 2
+scaling0: 1.0
+scaling1: 1.0
+timelineCount: 2
+timeline0: 0.0
+timeline1: 1.0
+- Options - 
+attached: false
+continuous: true
+aligned: false
+additive: true
+behind: false
+premultipliedAlpha: false
+spriteMode: single
+- Image Paths -
+/Users/dungle/Desktop/libgdx/D:\绮掑瓙\docs\api\resources\NPC_BL_green_skill2.png
+
+
+Untitled
+- Delay -
+active: false
+- Duration - 
+lowMin: 1000.0
+lowMax: 1000.0
+- Count - 
+min: 0
+max: 25
+- Emission - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 50.0
+highMax: 50.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Life - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 500.0
+highMax: 500.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+independent: false
+- Life Offset - 
+active: false
+independent: false
+- X Offset - 
+active: false
+- Y Offset - 
+active: false
+- Spawn Shape - 
+shape: point
+- Spawn Width - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 0.0
+highMax: 0.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Spawn Height - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 0.0
+highMax: 0.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- X Scale - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 100.0
+highMax: 100.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Y Scale - 
+active: false
+- Velocity - 
+active: false
+- Angle - 
+active: false
+- Rotation - 
+active: false
+- Wind - 
+active: false
+- Gravity - 
+active: false
+- Tint - 
+colorsCount: 3
+colors0: 1.0
+colors1: 1.0
+colors2: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Transparency - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 1.0
+highMax: 1.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Options - 
+attached: true
+continuous: true
+aligned: false
+additive: false
+behind: false
+premultipliedAlpha: false
+spriteMode: single
+- Image Paths -
+/Users/dungle/Desktop/sound/THẮNG.png
+
+
+Untitled
+- Delay -
+active: false
+- Duration - 
+lowMin: 1000.0
+lowMax: 1000.0
+- Count - 
+min: 0
+max: 15
+- Emission - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 50.0
+highMax: 50.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Life - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 500.0
+highMax: 500.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+independent: false
+- Life Offset - 
+active: false
+independent: false
+- X Offset - 
+active: true
+lowMin: -45.0
+lowMax: 50.0
+highMin: 0.0
+highMax: 0.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Y Offset - 
+active: true
+lowMin: -20.0
+lowMax: 20.0
+highMin: 0.0
+highMax: 0.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Spawn Shape - 
+shape: point
+- Spawn Width - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 0.0
+highMax: 0.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Spawn Height - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 0.0
+highMax: 0.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- X Scale - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 25.0
+highMax: 35.0
+relative: false
+scalingCount: 4
+scaling0: 1.0
+scaling1: 0.6938776
+scaling2: 1.0
+scaling3: 0.8367347
+timelineCount: 4
+timeline0: 0.0
+timeline1: 0.24657534
+timeline2: 0.5068493
+timeline3: 0.9109589
+- Y Scale - 
+active: false
+- Velocity - 
+active: false
+- Angle - 
+active: false
+- Rotation - 
+active: false
+- Wind - 
+active: false
+- Gravity - 
+active: false
+- Tint - 
+colorsCount: 3
+colors0: 1.0
+colors1: 1.0
+colors2: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Transparency - 
+lowMin: 0.0
+lowMax: 0.0
+highMin: 1.0
+highMax: 1.0
+relative: false
+scalingCount: 1
+scaling0: 1.0
+timelineCount: 1
+timeline0: 0.0
+- Options - 
+attached: false
+continuous: true
+aligned: false
+additive: true
+behind: false
+premultipliedAlpha: false
+spriteMode: single
+- Image Paths -
+ITEM_Sp_04_Howl_2.png
+

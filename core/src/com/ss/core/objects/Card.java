@@ -44,7 +44,7 @@ public class Card extends Image {
             super.clicked(event, x, y);
             SoundEffect.Play(SoundEffect.flipACard);
             flipCard(true);
-            if(GGameMainScene.effect.size == 2){
+            if(GGameMainScene.effect.size == 4){
                 GGameMainScene.disposeParticleCardsPlayer();
             }
             }

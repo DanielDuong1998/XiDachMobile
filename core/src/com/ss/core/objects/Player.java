@@ -6,6 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Align;
+import com.ss.core.effects.EffectSlide;
 import com.ss.core.effects.SoundEffect;
 import com.ss.core.util.GAssetsManager;
 import com.ss.core.util.GUI;
@@ -22,9 +23,9 @@ public class Player {
     String unit;
     public Image avatar;
     public Image frameAvt;
-    public Image win;
-    public Image lose;
-    public Image tie;
+    public EffectSlide win;
+    public EffectSlide lose;
+    public EffectSlide tie;
 
     public Player(TextureAtlas gameMainAtlas, Group group, long money, int idAvatar, int nameid){
         initFont();
@@ -40,24 +41,31 @@ public class Player {
         this.group.addActor(this.avatar);
         this.nameid = nameid;
 
-        win = GUI.createImage(gameMainAtlas, "win");
-        win.setSize(win.getWidth()*0.5f, win.getHeight()*0.5f);
-        win.setPosition(- 100, - 20);
+//        win = GUI.createImage(gameMainAtlas, "win");
+//        win.setSize(win.getWidth()*0.5f, win.getHeight()*0.5f);
+//        win.setPosition(- 100, - 20);
+//
+//        lose = GUI.createImage(gameMainAtlas, "lose");
+//        lose.setSize(lose.getWidth()*0.5f, lose.getHeight()*0.5f);
+//        lose.setPosition( - 100,  - 20);
+//
+//        tie = GUI.createImage(gameMainAtlas, "tie");
+//        tie.setSize(tie.getWidth()*0.5f, tie.getHeight()*0.5f);
+//        tie.setPosition(- 100, - 20);
 
-        lose = GUI.createImage(gameMainAtlas, "lose");
-        lose.setSize(lose.getWidth()*0.5f, lose.getHeight()*0.5f);
-        lose.setPosition( - 100,  - 20);
+//        win = new EffectSlide("win", -100, -20, group);
+//        lose = new EffectSlide("lose", -100, -20, group);
+//        tie = new EffectSlide("tie", -100, -20, group);
 
-        tie = GUI.createImage(gameMainAtlas, "tie");
-        tie.setSize(tie.getWidth()*0.5f, tie.getHeight()*0.5f);
-        tie.setPosition(- 100, - 20);
 
-        lose.setVisible(false);
-        win.setVisible(false);
-        tie.setVisible(false);
-        group.addActor(win);
-        group.addActor(lose);
-        group.addActor(tie);
+
+//        lose.setVisible(false);
+//        win.setVisible(false);
+//        tie.setVisible(false);
+//        group.addActor(win);
+//        group.addActor(lose);
+//        group.addActor(tie);
+
 
 
         int div;
@@ -191,28 +199,60 @@ public class Player {
         this.moneyTxt.setPosition(15, -50);
         group.addActor(this.moneyTxt);
 
-        win.remove();
-        lose.remove();
-        tie.remove();
+//        win.remove();
+//        lose.remove();
+//        tie.remove();
 
-        win = GUI.createImage(gameMainAtlas, "win");
-        win.setSize(win.getWidth()*0.5f, win.getHeight()*0.5f);
-        win.setPosition(- 100, - 20);
+//        win = GUI.createImage(gameMainAtlas, "win");
+//        win.setSize(win.getWidth()*0.5f, win.getHeight()*0.5f);
+//        win.setPosition(- 100, - 20);
+//
+//        lose = GUI.createImage(gameMainAtlas, "lose");
+//        lose.setSize(lose.getWidth()*0.5f, lose.getHeight()*0.5f);
+//        lose.setPosition( - 100,  - 20);
+//
+//        tie = GUI.createImage(gameMainAtlas, "tie");
+//        tie.setSize(tie.getWidth()*0.5f, tie.getHeight()*0.5f);
+//        tie.setPosition(- 100, - 20);
 
-        lose = GUI.createImage(gameMainAtlas, "lose");
-        lose.setSize(lose.getWidth()*0.5f, lose.getHeight()*0.5f);
-        lose.setPosition( - 100,  - 20);
+//        win = new EffectSlide("win", -100, -20, group);
+//        lose = new EffectSlide("lose", -100, -20, group);
+//        tie = new EffectSlide("tie", -100, -20, group);
 
-        tie = GUI.createImage(gameMainAtlas, "tie");
-        tie.setSize(tie.getWidth()*0.5f, tie.getHeight()*0.5f);
-        tie.setPosition(- 100, - 20);
+//        lose.setVisible(false);
+//        win.setVisible(false);
+//        tie.setVisible(false);
+//
+//        group.addActor(win);
+//        group.addActor(lose);
+//        group.addActor(tie);
 
-        lose.setVisible(false);
-        win.setVisible(false);
-        tie.setVisible(false);
+    }
+
+    public void win(){
+        win = new EffectSlide("win", 0, 0, group);
         group.addActor(win);
-        group.addActor(lose);
-        group.addActor(tie);
+        win.start();
+    }
 
+    public void lose(){
+        lose = new EffectSlide("lose", 0, 0, group);
+        group.addActor(lose);
+        lose.start();
+    }
+
+    public void tie(){
+        tie = new EffectSlide("tie", 0, 0, group);
+        group.addActor(tie);
+        tie.start();
+    }
+
+    public void disposeParticle(){
+        if(win != null)
+            win.remove();
+        if(lose != null)
+            lose.remove();
+        if(tie != null)
+            tie.remove();
     }
 }

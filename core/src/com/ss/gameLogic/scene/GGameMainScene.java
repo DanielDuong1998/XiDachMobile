@@ -138,12 +138,6 @@ public class GGameMainScene extends GScreen {
         initGroupPockers();
         renderGroupPocker();
 
-        for(int i = 0; i < bots.size; i++){
-            bots.get(i).tie.setVisible(false);
-            bots.get(i).win.setVisible(false);
-            bots.get(i).lose.setVisible(false);
-        }
-
         initFlipsCards();
         renderFlipCards();
         initPointTxt();
@@ -376,15 +370,14 @@ public class GGameMainScene extends GScreen {
         effect = new Array<>();
         EffectSlide effectSlide1 = new EffectSlide("runARound", 540, 490, uiGroup);
         EffectSlide effectSlide2 = new EffectSlide("runARound", 690, 650, uiGroup);
-//        EffectSlide effectSlide3 = new EffectSlide("runARound2", 100, 200, uiGroup);
-//        EffectSlide effectSlide4 = new EffectSlide("runARound2", 200, 200, uiGroup);
+        EffectSlide effectSlide3 = new EffectSlide("runARound2", 718, 490, uiGroup);
+        EffectSlide effectSlide4 = new EffectSlide("runARound2", 530, 600, uiGroup);
 
-        effect.add(effectSlide1, effectSlide2/*, effectSlide3, effectSlide4*/);
-        //effect = new EffectSlide("runARound", 540, 480, uiGroup);
+        effect.add(effectSlide1, effectSlide2, effectSlide3, effectSlide4);
         uiGroup.addActor(effect.get(0));
         uiGroup.addActor(effect.get(1));
-//        uiGroup.addActor(effect.get(2));
-//        uiGroup.addActor(effect.get(3));
+        uiGroup.addActor(effect.get(2));
+        uiGroup.addActor(effect.get(3));
 
         for(int i = 0; i < effect.size; i++) {
             effect.get(i).start();
@@ -863,6 +856,7 @@ public class GGameMainScene extends GScreen {
         uiGroup.clearChildren();
         uiGroup.clear();
         setScreen(new GGameBegin());
+        GGameStart.idBoss = -1;
     }
 
     public void checkVideo(int idModeVideo){
