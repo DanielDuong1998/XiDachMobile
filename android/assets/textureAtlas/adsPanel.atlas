@@ -1,0 +1,27 @@
+
+adsPanel.png
+size: 1024,512
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+btnDone
+  rotate: false
+  xy: 664, 400
+  size: 171, 69
+  orig: 171, 69
+  offset: 0, 0
+  index: -1
+btnExit
+  rotate: false
+  xy: 2, 2
+  size: 171, 69
+  orig: 171, 69
+  offset: 0, 0
+  index: -1
+seeAdsAlert
+  rotate: false
+  xy: 2, 73
+  size: 660, 396
+  orig: 660, 396
+  offset: 0, 0
+  index: -1

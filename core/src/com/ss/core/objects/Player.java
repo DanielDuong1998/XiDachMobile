@@ -66,32 +66,31 @@ public class Player {
 //        group.addActor(lose);
 //        group.addActor(tie);
 
-
-
+        System.out.println("money again: " + this.money);
         int div;
-        if(money > 1000000000){
-            div = (int) money/100000000;
-            int nguyen, du;
+        if(this.money > 1000000000){
+            div = (int) this.money/100000000;
+            long nguyen, du;
             nguyen = div/10;
             du = div%10;
             unit = nguyen + "," + du + "B";
 
         }
-        else if(money > 1000000){
-            div = (int) money/100000;
-            int nguyen, du;
+        else if(this.money > 1000000){
+            div = (int) this.money/100000;
+            long nguyen, du;
             nguyen = div/10;
             du = div%10;
             unit = nguyen + "," + du + "M";
         }
-        else if(money > 1000){
-            div = (int) money/100;
-            int nguyen, du;
+        else if(this.money > 1000){
+            div = (int) this.money/100;
+            long nguyen, du;
             nguyen = div/10;
             du = div%10;
             unit = nguyen + "," + du + "K";
         }
-        else unit = "" + money;
+        else unit = "" + this.money;
 
 
         String firstName = GGameMainScene.firstName[nameid];
